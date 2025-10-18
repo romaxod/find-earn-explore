@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
-import type { LatLngExpression } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { supabase } from "@/integrations/supabase/client";
@@ -51,7 +50,7 @@ const userIcon = new L.Icon({
   shadowSize: [41, 41]
 });
 
-function MapController({ center, zoom }: { center?: LatLngExpression; zoom?: number }) {
+function MapController({ center, zoom }: { center?: [number, number]; zoom?: number }) {
   const map = useMap();
   
   useEffect(() => {
@@ -67,8 +66,8 @@ const TbilisiMap = ({ highlightEvent }: TbilisiMapProps = {}) => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [events, setEvents] = useState<Event[]>([]);
-  const [userLocation, setUserLocation] = useState<LatLngExpression | null>(null);
-  const [flyToCenter, setFlyToCenter] = useState<LatLngExpression | undefined>();
+  const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
+  const [flyToCenter, setFlyToCenter] = useState<[number, number] | undefined>();
   const [flyToZoom, setFlyToZoom] = useState<number | undefined>();
 
   useEffect(() => {
@@ -136,7 +135,7 @@ const TbilisiMap = ({ highlightEvent }: TbilisiMapProps = {}) => {
     }
   };
 
-  const defaultCenter: LatLngExpression = [41.7151, 44.8271];
+  const defaultCenter: [number, number] = [41.7151, 44.8271];
 
   return (
     <div className="relative w-full h-full rounded-lg overflow-hidden">
@@ -162,7 +161,7 @@ const TbilisiMap = ({ highlightEvent }: TbilisiMapProps = {}) => {
         )}
 
         {events.map((event) => {
-          const eventPosition: LatLngExpression = [event.location_lat, event.location_lng];
+          const eventPosition: [number, number] = [event.location_lat, event.location_lng];
           return (
             <Marker
               key={event.id}
