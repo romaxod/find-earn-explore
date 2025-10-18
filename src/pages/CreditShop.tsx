@@ -212,38 +212,6 @@ const CreditShop = () => {
               );
             })}
           </div>
-
-          <div className="mt-20">
-            <Card className="max-w-4xl mx-auto gradient-card border-primary/20 shadow-glow">
-              <CardHeader className="text-center pb-8">
-                <CardTitle className="text-3xl mb-2">How Discount Packages Work</CardTitle>
-                <CardDescription className="text-base">Simple steps to unlock premium savings</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="flex gap-4 items-start">
-                  <div className="gradient-hero text-primary-foreground w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 shadow-glow text-lg font-bold">1</div>
-                  <div className="space-y-1 pt-1">
-                    <p className="font-semibold text-lg">Select Your Package</p>
-                    <p className="text-muted-foreground leading-relaxed">Browse our premium discount packages and choose the one that matches your lifestyle</p>
-                  </div>
-                </div>
-                <div className="flex gap-4 items-start">
-                  <div className="gradient-hero text-primary-foreground w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 shadow-glow text-lg font-bold">2</div>
-                  <div className="space-y-1 pt-1">
-                    <p className="font-semibold text-lg">Activate with Credits</p>
-                    <p className="text-muted-foreground leading-relaxed">Use your credits to activate the package instantly and unlock exclusive discounts</p>
-                  </div>
-                </div>
-                <div className="flex gap-4 items-start">
-                  <div className="gradient-hero text-primary-foreground w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 shadow-glow text-lg font-bold">3</div>
-                  <div className="space-y-1 pt-1">
-                    <p className="font-semibold text-lg">Enjoy Your Benefits</p>
-                    <p className="text-muted-foreground leading-relaxed">Your discounts are automatically applied when purchasing event tickets during the active period</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
         </div>
       </main>
     </div>

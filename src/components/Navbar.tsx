@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { MapPin, Sparkles, User, Coins, LogOut, Compass } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 
 export const Navbar = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
   const [user, setUser] = useState<any>(null);
   const [credits, setCredits] = useState(0);
@@ -68,19 +69,28 @@ export const Navbar = () => {
           
           <div className="flex items-center gap-4">
             <Link to="/explore">
-              <Button variant="ghost" className="gap-2">
+              <Button 
+                variant={location.pathname === "/explore" ? "default" : "ghost"} 
+                className="gap-2"
+              >
                 <Compass className="w-4 h-4" />
                 Explore
               </Button>
             </Link>
             <Link to="/map">
-              <Button variant="ghost" className="gap-2">
+              <Button 
+                variant={location.pathname === "/map" ? "default" : "ghost"} 
+                className="gap-2"
+              >
                 <MapPin className="w-4 h-4" />
                 Map
               </Button>
             </Link>
             <Link to="/credits">
-              <Button variant="ghost" className="gap-2">
+              <Button 
+                variant={location.pathname === "/credits" ? "default" : "ghost"} 
+                className="gap-2"
+              >
                 <Coins className="w-4 h-4" />
                 Credits
                 {user && <span className="text-primary font-bold">({credits})</span>}
