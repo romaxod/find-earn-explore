@@ -10,9 +10,10 @@ import { Button } from "@/components/ui/button";
 
 interface TbilisiMapProps {
   highlightEvent?: { lat: number; lng: number; id?: string };
+  showDirections?: boolean;
 }
 
-const TbilisiMap = ({ highlightEvent }: TbilisiMapProps = {}) => {
+const TbilisiMap = ({ highlightEvent, showDirections = true }: TbilisiMapProps = {}) => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const mapContainer = useRef<HTMLDivElement>(null);
@@ -148,7 +149,7 @@ const TbilisiMap = ({ highlightEvent }: TbilisiMapProps = {}) => {
     if (userLocation && map.current) {
       drawRoutesToEvents();
     }
-  }, [events, userLocation, navigate, highlightEvent]);
+  }, [events, userLocation, navigate, highlightEvent, showDirections]);
 
   useEffect(() => {
     if (highlightEvent && map.current) {
@@ -158,12 +159,12 @@ const TbilisiMap = ({ highlightEvent }: TbilisiMapProps = {}) => {
         duration: 2000
       });
       
-      // Redraw routes when highlighting a specific event
+      // Redraw routes when highlighting a specific event or showDirections changes
       if (userLocation && events.length > 0) {
         drawRoutesToEvents();
       }
     }
-  }, [highlightEvent, userLocation, events]);
+  }, [highlightEvent, userLocation, events, showDirections]);
 
   const getUserLocation = () => {
     if (navigator.geolocation) {
@@ -213,12 +214,15 @@ const TbilisiMap = ({ highlightEvent }: TbilisiMapProps = {}) => {
       map.current.removeSource('routes');
     }
 
+    // Only draw routes if showDirections is true
+    if (!showDirections) return;
+
     const routes: any[] = [];
     
     // Filter events based on highlightEvent
     const eventsToRoute = highlightEvent?.id 
       ? events.filter(e => e.id === highlightEvent.id)
-      : events;
+      : [];  // Only show route when there's a specific highlighted event
 
     for (const event of eventsToRoute) {
       try {

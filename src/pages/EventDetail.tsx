@@ -19,6 +19,7 @@ const EventDetail = () => {
   const [user, setUser] = useState<any>(null);
   const [rsvps, setRsvps] = useState<any[]>([]);
   const [isGoing, setIsGoing] = useState(false);
+  const [showDirections, setShowDirections] = useState(false);
 
   useEffect(() => {
     checkAuth();
@@ -300,8 +301,10 @@ const EventDetail = () => {
                   <TbilisiMap 
                     highlightEvent={{ 
                       lat: event.location_lat, 
-                      lng: event.location_lng 
-                    }} 
+                      lng: event.location_lng,
+                      id: event.id
+                    }}
+                    showDirections={showDirections}
                   />
                 </div>
               </div>
@@ -310,20 +313,11 @@ const EventDetail = () => {
                 <Button 
                   className="gap-2" 
                   size="lg"
-                  onClick={() => {
-                    navigate('/map', { 
-                      state: { 
-                        highlightEvent: {
-                          lat: event.location_lat,
-                          lng: event.location_lng,
-                          id: event.id
-                        }
-                      }
-                    });
-                  }}
+                  variant={showDirections ? "outline" : "default"}
+                  onClick={() => setShowDirections(!showDirections)}
                 >
                   <Navigation className="w-4 h-4" />
-                  Get Directions
+                  {showDirections ? "Remove Directions" : "Get Directions"}
                 </Button>
                 <Button 
                   variant={isGoing ? "outline" : "default"}
