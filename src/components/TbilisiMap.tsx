@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
 interface TbilisiMapProps {
-  highlightEvent?: { lat: number; lng: number };
+  highlightEvent?: { lat: number; lng: number; id?: string };
 }
 
 const TbilisiMap = ({ highlightEvent }: TbilisiMapProps = {}) => {
@@ -148,7 +148,7 @@ const TbilisiMap = ({ highlightEvent }: TbilisiMapProps = {}) => {
     if (userLocation && map.current) {
       drawRoutesToEvents();
     }
-  }, [events, userLocation, navigate]);
+  }, [events, userLocation, navigate, highlightEvent]);
 
   useEffect(() => {
     if (highlightEvent && map.current) {
@@ -157,8 +157,13 @@ const TbilisiMap = ({ highlightEvent }: TbilisiMapProps = {}) => {
         zoom: 15,
         duration: 2000
       });
+      
+      // Redraw routes when highlighting a specific event
+      if (userLocation && events.length > 0) {
+        drawRoutesToEvents();
+      }
     }
-  }, [highlightEvent]);
+  }, [highlightEvent, userLocation, events]);
 
   const getUserLocation = () => {
     if (navigator.geolocation) {
@@ -209,8 +214,13 @@ const TbilisiMap = ({ highlightEvent }: TbilisiMapProps = {}) => {
     }
 
     const routes: any[] = [];
+    
+    // Filter events based on highlightEvent
+    const eventsToRoute = highlightEvent?.id 
+      ? events.filter(e => e.id === highlightEvent.id)
+      : events;
 
-    for (const event of events) {
+    for (const event of eventsToRoute) {
       try {
         const response = await fetch(
           `https://api.mapbox.com/directions/v5/mapbox/walking/${userLocation[0]},${userLocation[1]};${event.location_lng},${event.location_lat}?geometries=geojson&access_token=${mapboxToken}`

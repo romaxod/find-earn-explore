@@ -311,21 +311,15 @@ const EventDetail = () => {
                   className="gap-2" 
                   size="lg"
                   onClick={() => {
-                    if (navigator.geolocation) {
-                      navigator.geolocation.getCurrentPosition(
-                        (position) => {
-                          const origin = `${position.coords.latitude},${position.coords.longitude}`;
-                          const destination = `${event.location_lat},${event.location_lng}`;
-                          window.open(`https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}`, '_blank', 'noopener,noreferrer');
-                        },
-                        () => {
-                          // Fallback if location access denied
-                          window.open(`https://www.google.com/maps/dir/?api=1&destination=${event.location_lat},${event.location_lng}`, '_blank', 'noopener,noreferrer');
+                    navigate('/map', { 
+                      state: { 
+                        highlightEvent: {
+                          lat: event.location_lat,
+                          lng: event.location_lng,
+                          id: event.id
                         }
-                      );
-                    } else {
-                      window.open(`https://www.google.com/maps/dir/?api=1&destination=${event.location_lat},${event.location_lng}`, '_blank', 'noopener,noreferrer');
-                    }
+                      }
+                    });
                   }}
                 >
                   <Navigation className="w-4 h-4" />

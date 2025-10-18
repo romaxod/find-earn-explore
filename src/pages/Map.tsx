@@ -1,7 +1,11 @@
 import { Navbar } from "@/components/Navbar";
 import TbilisiMap from "@/components/TbilisiMap";
+import { useLocation } from "react-router-dom";
 
 const Map = () => {
+  const location = useLocation();
+  const highlightEvent = location.state?.highlightEvent;
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -18,7 +22,7 @@ const Map = () => {
           </div>
 
           <div className="h-[600px] w-full">
-            <TbilisiMap />
+            <TbilisiMap highlightEvent={highlightEvent} />
           </div>
         </div>
       </main>
