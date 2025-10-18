@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { useEffect, useState, useRef } from "react";
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { supabase } from "@/integrations/supabase/client";
@@ -50,25 +50,13 @@ const userIcon = new L.Icon({
   shadowSize: [41, 41]
 });
 
-function MapController({ center, zoom }: { center?: [number, number]; zoom?: number }) {
-  const map = useMap();
-  
-  useEffect(() => {
-    if (center && zoom) {
-      map.flyTo(center, zoom, { duration: 2 });
-    }
-  }, [center, zoom, map]);
-  
-  return null;
-}
 
 const TbilisiMap = ({ highlightEvent }: TbilisiMapProps = {}) => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [events, setEvents] = useState<Event[]>([]);
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
-  const [flyToCenter, setFlyToCenter] = useState<[number, number] | undefined>();
-  const [flyToZoom, setFlyToZoom] = useState<number | undefined>();
+  const mapRef = useRef<L.Map | null>(null);
 
   useEffect(() => {
     fetchEvents();
@@ -76,9 +64,8 @@ const TbilisiMap = ({ highlightEvent }: TbilisiMapProps = {}) => {
   }, []);
 
   useEffect(() => {
-    if (highlightEvent) {
-      setFlyToCenter([highlightEvent.lat, highlightEvent.lng]);
-      setFlyToZoom(15);
+    if (highlightEvent && mapRef.current) {
+      mapRef.current.flyTo([highlightEvent.lat, highlightEvent.lng], 15, { duration: 2 });
     }
   }, [highlightEvent]);
 
@@ -144,13 +131,12 @@ const TbilisiMap = ({ highlightEvent }: TbilisiMapProps = {}) => {
         zoom={12}
         style={{ height: '100%', width: '100%' }}
         className="z-0"
+        ref={mapRef}
       >
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         />
-        
-        <MapController center={flyToCenter} zoom={flyToZoom} />
 
         {userLocation && (
           <Marker position={userLocation} icon={userIcon}>
