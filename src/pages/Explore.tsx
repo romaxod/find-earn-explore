@@ -116,16 +116,21 @@ const Explore = () => {
       const tomorrowEnd = endOfDay(tomorrow);
       matchesDate = eventDate >= tomorrowStart && eventDate <= tomorrowEnd;
     } else if (dateFilter === "week") {
-      const weekStart = startOfWeek(now, { weekStartsOn: 1 }); // Monday
-      const weekEnd = endOfWeek(now, { weekStartsOn: 1 }); // Sunday
-      matchesDate = eventDate >= weekStart && eventDate <= weekEnd;
+      const weekStart = now; // Start from today
+      const weekEnd = endOfWeek(now, { weekStartsOn: 1 }); // Until end of week (Sunday)
+      matchesDate = eventDate >= startOfDay(weekStart) && eventDate <= endOfDay(weekEnd);
     }
     
     return matchesCategory && matchesSearch && matchesDate;
   });
 
   const handleDateFilterClick = (filter: "all" | "today" | "tomorrow" | "week") => {
-    setDateFilter(filter);
+    // Toggle off if clicking the same filter
+    if (dateFilter === filter) {
+      setDateFilter("all");
+    } else {
+      setDateFilter(filter);
+    }
     setSelectedDate(undefined); // Clear specific date selection
   };
 
