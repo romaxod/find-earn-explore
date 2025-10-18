@@ -3,9 +3,11 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Clock, Star, ArrowLeft, Navigation, Users } from "lucide-react";
+import { MapPin, Clock, Star, ArrowLeft, Navigation, Users, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import TbilisiMap from "@/components/TbilisiMap";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 const EventDetail = () => {
   const { id } = useParams();
@@ -15,11 +17,21 @@ const EventDetail = () => {
   const [loading, setLoading] = useState(true);
   const [attending, setAttending] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [rsvps, setRsvps] = useState<any[]>([]);
+  const [isGoing, setIsGoing] = useState(false);
+  const [showMap, setShowMap] = useState(false);
 
   useEffect(() => {
     checkAuth();
     fetchEvent();
+    fetchRsvps();
   }, [id]);
+
+  useEffect(() => {
+    if (user && rsvps.length > 0) {
+      setIsGoing(rsvps.some(rsvp => rsvp.user_id === user.id));
+    }
+  }, [user, rsvps]);
 
   const checkAuth = async () => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -49,6 +61,80 @@ const EventDetail = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchRsvps = async () => {
+    if (!id) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('event_rsvps')
+        .select(`
+          *,
+          profiles (name)
+        `)
+        .eq('event_id', id)
+        .order('created_at', { ascending: true });
+      
+      if (error) throw error;
+      
+      setRsvps(data || []);
+    } catch (error) {
+      console.error('Error fetching RSVPs:', error);
+    }
+  };
+
+  const handleRsvp = async () => {
+    if (!user) {
+      toast({
+        title: "Sign in required",
+        description: "Please sign in to RSVP to events",
+      });
+      navigate('/auth');
+      return;
+    }
+
+    try {
+      if (isGoing) {
+        // Remove RSVP
+        const { error } = await supabase
+          .from('event_rsvps')
+          .delete()
+          .eq('event_id', id)
+          .eq('user_id', user.id);
+        
+        if (error) throw error;
+        
+        toast({
+          title: "RSVP removed",
+          description: "You are no longer going to this event",
+        });
+      } else {
+        // Add RSVP
+        const { error } = await supabase
+          .from('event_rsvps')
+          .insert({
+            event_id: id,
+            user_id: user.id,
+          });
+        
+        if (error) throw error;
+        
+        toast({
+          title: "RSVP confirmed! 🎉",
+          description: "You're going to this event",
+        });
+      }
+      
+      fetchRsvps();
+    } catch (error: any) {
+      console.error('Error managing RSVP:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update RSVP",
+        variant: "destructive",
+      });
     }
   };
 
@@ -148,7 +234,7 @@ const EventDetail = () => {
               </div>
               <div className="absolute top-4 right-4 bg-background/90 backdrop-blur-sm px-4 py-2 rounded-full flex items-center gap-2">
                 <Users className="w-4 h-4" />
-                <span className="font-medium">{event.attendees_count || 0} attending</span>
+                <span className="font-medium">{rsvps.length} going</span>
               </div>
             </div>
 
@@ -192,18 +278,45 @@ const EventDetail = () => {
                 </div>
               )}
 
-              <div className="flex gap-3 pt-4">
+              {rsvps.length > 0 && (
+                <div className="space-y-3">
+                  <h2 className="text-2xl font-bold">Who's Going ({rsvps.length})</h2>
+                  <div className="flex flex-wrap gap-3">
+                    {rsvps.map((rsvp) => (
+                      <div key={rsvp.id} className="flex items-center gap-2 bg-muted/50 rounded-full px-3 py-2">
+                        <Avatar className="w-6 h-6">
+                          <AvatarFallback className="text-xs">
+                            {rsvp.profiles?.name?.charAt(0).toUpperCase() || 'U'}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="text-sm font-medium">{rsvp.profiles?.name || 'User'}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-4">
                 <Button 
-                  className="flex-1 gap-2" 
+                  className="gap-2" 
                   size="lg"
-                  onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${event.location_lat},${event.location_lng}`, '_blank', 'noopener,noreferrer')}
+                  onClick={() => setShowMap(!showMap)}
                 >
                   <Navigation className="w-4 h-4" />
-                  Get Directions
+                  {showMap ? "Hide" : "Show"} Directions
+                </Button>
+                <Button 
+                  variant={isGoing ? "outline" : "default"}
+                  className="gap-2" 
+                  size="lg"
+                  onClick={handleRsvp}
+                >
+                  {isGoing && <Check className="w-4 h-4" />}
+                  {isGoing ? "Going" : "I'm Going"}
                 </Button>
                 <Button 
                   variant="hero" 
-                  className="flex-1" 
+                  className="gap-2" 
                   size="lg"
                   onClick={handleAttendEvent}
                   disabled={attending}
@@ -211,6 +324,17 @@ const EventDetail = () => {
                   {attending ? "Checking in..." : "Check In & Earn Credits"}
                 </Button>
               </div>
+
+              {showMap && (
+                <div className="h-[400px] w-full rounded-2xl overflow-hidden border border-border">
+                  <TbilisiMap 
+                    showDirectionsTo={{ 
+                      lat: event.location_lat, 
+                      lng: event.location_lng 
+                    }} 
+                  />
+                </div>
+              )}
             </div>
           </div>
         </div>

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { GoogleMap, LoadScript, Marker, InfoWindow } from "@react-google-maps/api";
+import { GoogleMap, LoadScript, Marker, InfoWindow, DirectionsRenderer } from "@react-google-maps/api";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
@@ -24,14 +24,69 @@ const options = {
   fullscreenControl: true,
 };
 
-const TbilisiMap = () => {
+interface TbilisiMapProps {
+  showDirectionsTo?: { lat: number; lng: number };
+}
+
+const TbilisiMap = ({ showDirectionsTo }: TbilisiMapProps = {}) => {
   const { toast } = useToast();
   const [events, setEvents] = useState<any[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<any>(null);
+  const [directions, setDirections] = useState<google.maps.DirectionsResult | null>(null);
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
 
   useEffect(() => {
     fetchEvents();
+    getUserLocation();
   }, []);
+
+  useEffect(() => {
+    if (showDirectionsTo && userLocation) {
+      calculateRoute(userLocation, showDirectionsTo);
+    }
+  }, [showDirectionsTo, userLocation]);
+
+  const getUserLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          });
+        },
+        (error) => {
+          console.error("Error getting location:", error);
+          toast({
+            title: "Location access denied",
+            description: "Please enable location access to see directions",
+            variant: "destructive",
+          });
+        }
+      );
+    }
+  };
+
+  const calculateRoute = async (origin: { lat: number; lng: number }, destination: { lat: number; lng: number }) => {
+    if (!window.google) return;
+
+    const directionsService = new google.maps.DirectionsService();
+    try {
+      const results = await directionsService.route({
+        origin: new google.maps.LatLng(origin.lat, origin.lng),
+        destination: new google.maps.LatLng(destination.lat, destination.lng),
+        travelMode: google.maps.TravelMode.DRIVING,
+      });
+      setDirections(results);
+    } catch (error) {
+      console.error("Error calculating route:", error);
+      toast({
+        title: "Route error",
+        description: "Could not calculate route to destination",
+        variant: "destructive",
+      });
+    }
+  };
 
   const fetchEvents = async () => {
     try {
@@ -61,11 +116,21 @@ const TbilisiMap = () => {
       <LoadScript googleMapsApiKey={GOOGLE_MAPS_API_KEY}>
         <GoogleMap
           mapContainerStyle={mapContainerStyle}
-          zoom={13}
-          center={center}
+          zoom={showDirectionsTo ? 12 : 13}
+          center={showDirectionsTo && directions ? undefined : center}
           options={options}
         >
-          {events.map((event) => (
+          {userLocation && (
+            <Marker
+              position={userLocation}
+              icon={{
+                url: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png",
+              }}
+              title="Your Location"
+            />
+          )}
+
+          {!showDirectionsTo && events.map((event) => (
             <Marker
               key={event.id}
               position={{ lat: event.location_lat, lng: event.location_lng }}
@@ -74,7 +139,27 @@ const TbilisiMap = () => {
             />
           ))}
 
-          {selectedEvent && (
+          {showDirectionsTo && (
+            <Marker
+              position={showDirectionsTo}
+              title="Event Location"
+            />
+          )}
+
+          {directions && (
+            <DirectionsRenderer
+              directions={directions}
+              options={{
+                suppressMarkers: false,
+                polylineOptions: {
+                  strokeColor: "#4F46E5",
+                  strokeWeight: 5,
+                },
+              }}
+            />
+          )}
+
+          {selectedEvent && !showDirectionsTo && (
             <InfoWindow
               position={{ lat: selectedEvent.location_lat, lng: selectedEvent.location_lng }}
               onCloseClick={() => setSelectedEvent(null)}
