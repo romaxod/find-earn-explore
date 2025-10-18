@@ -17,17 +17,17 @@ All colors MUST be HSL.
     --popover: 240 8% 8%;
     --popover-foreground: 240 5% 98%;
 
-    --primary: 280 85% 60%;
+    --primary: 160 85% 45%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 280 85% 70%;
+    --primary-glow: 160 85% 55%;
 
-    --secondary: 20 90% 65%;
+    --secondary: 35 95% 60%;
     --secondary-foreground: 0 0% 100%;
 
     --muted: 240 5% 15%;
     --muted-foreground: 240 5% 65%;
 
-    --accent: 200 95% 55%;
+    --accent: 10 80% 65%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 85% 60%;
@@ -35,15 +35,15 @@ All colors MUST be HSL.
 
     --border: 240 5% 20%;
     --input: 240 5% 15%;
-    --ring: 280 85% 60%;
+    --ring: 160 85% 45%;
 
     --radius: 0.75rem;
 
-    --gradient-hero: linear-gradient(135deg, hsl(280 85% 60%), hsl(20 90% 65%));
+    --gradient-hero: linear-gradient(135deg, hsl(160 85% 45%), hsl(35 95% 60%));
     --gradient-card: linear-gradient(180deg, hsl(240 8% 8%), hsl(240 8% 6%));
-    --gradient-accent: linear-gradient(135deg, hsl(280 85% 60%), hsl(200 95% 55%));
+    --gradient-accent: linear-gradient(135deg, hsl(160 85% 45%), hsl(10 80% 65%));
     
-    --shadow-glow: 0 0 40px hsl(280 85% 60% / 0.3);
+    --shadow-glow: 0 0 40px hsl(160 85% 45% / 0.3);
     --shadow-card: 0 10px 40px hsl(240 10% 3% / 0.5);
     
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -75,16 +75,16 @@ All colors MUST be HSL.
     --popover: 240 8% 8%;
     --popover-foreground: 240 5% 98%;
 
-    --primary: 280 85% 60%;
+    --primary: 160 85% 45%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 20 90% 65%;
+    --secondary: 35 95% 60%;
     --secondary-foreground: 0 0% 100%;
 
     --muted: 240 5% 15%;
     --muted-foreground: 240 5% 65%;
 
-    --accent: 200 95% 55%;
+    --accent: 10 80% 65%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 85% 60%;
@@ -92,7 +92,7 @@ All colors MUST be HSL.
 
     --border: 240 5% 20%;
     --input: 240 5% 15%;
-    --ring: 280 85% 60%;
+    --ring: 160 85% 45%;
   }
 }
 
