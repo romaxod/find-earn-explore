@@ -2,6 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { Clock, MapPin, Coins } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { useState } from "react";
 
 export interface EventCardProps {
   id?: string;
@@ -24,14 +25,26 @@ export const EventCard = ({
   image,
   distance 
 }: EventCardProps) => {
+  const [imageError, setImageError] = useState(false);
+  
   return (
     <div className="group rounded-2xl overflow-hidden gradient-card border border-border/50 hover:border-primary/50 transition-smooth shadow-card hover:shadow-glow">
-      <div className="aspect-video relative overflow-hidden">
-        <img 
-          src={image} 
-          alt={title}
-          className="w-full h-full object-cover group-hover:scale-110 transition-smooth"
-        />
+      <div className="aspect-video relative overflow-hidden bg-gradient-subtle">
+        {!imageError ? (
+          <img 
+            src={image} 
+            alt={title}
+            className="w-full h-full object-cover group-hover:scale-110 transition-smooth"
+            onError={() => setImageError(true)}
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-secondary/20">
+            <div className="text-center space-y-2">
+              <div className="text-4xl">🎉</div>
+              <p className="text-sm text-muted-foreground px-4">{category}</p>
+            </div>
+          </div>
+        )}
         <div className="absolute top-4 left-4">
           <Badge className="bg-primary text-primary-foreground shadow-lg">
             {category}
