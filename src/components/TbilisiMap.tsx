@@ -54,22 +54,7 @@ const TbilisiMap = () => {
     }
   };
 
-  const GOOGLE_MAPS_API_KEY = "YOUR_GOOGLE_MAPS_API_KEY_HERE"; // Replace with your API key
-
-  // Show message if API key is not configured
-  if (GOOGLE_MAPS_API_KEY === "YOUR_GOOGLE_MAPS_API_KEY_HERE") {
-    return (
-      <div className="w-full h-full flex items-center justify-center bg-muted rounded-lg">
-        <div className="text-center p-6 space-y-3">
-          <h3 className="text-lg font-semibold">Google Maps API Key Required</h3>
-          <p className="text-sm text-muted-foreground max-w-md">
-            To display the map, you need to add your own Google Maps API key with billing enabled.
-            <br />Replace "YOUR_GOOGLE_MAPS_API_KEY_HERE" in TbilisiMap.tsx with your key.
-          </p>
-        </div>
-      </div>
-    );
-  }
+  const GOOGLE_MAPS_API_KEY = "AIzaSyCoD1EK5FkFxndXLUR6ceOO7OBuLo_mnAw";
 
   return (
     <div className="w-full h-full">
