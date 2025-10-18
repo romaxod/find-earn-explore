@@ -8,7 +8,7 @@ import { MapPin } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
-const STORAGE_KEY = 'mapbox_token';
+const MAPBOX_TOKEN = '43dfc4b3-4a0b-439f-8e5d-a6757ed28d31';
 
 interface TbilisiMapProps {
   highlightEvent?: { lat: number; lng: number };
@@ -22,23 +22,11 @@ const TbilisiMap = ({ highlightEvent }: TbilisiMapProps = {}) => {
   const [events, setEvents] = useState<any[]>([]);
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
   const markers = useRef<mapboxgl.Marker[]>([]);
-  const [mapboxToken, setMapboxToken] = useState<string>('');
-  const [tokenInput, setTokenInput] = useState<string>('');
-  const [isTokenSet, setIsTokenSet] = useState<boolean>(false);
 
   useEffect(() => {
-    // Check if token exists in localStorage
-    const savedToken = localStorage.getItem(STORAGE_KEY);
-    if (savedToken) {
-      setMapboxToken(savedToken);
-      setIsTokenSet(true);
-    }
-  }, []);
+    if (!mapContainer.current || map.current) return;
 
-  useEffect(() => {
-    if (!mapContainer.current || map.current || !isTokenSet || !mapboxToken) return;
-
-    mapboxgl.accessToken = mapboxToken;
+    mapboxgl.accessToken = MAPBOX_TOKEN;
     
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
@@ -191,7 +179,7 @@ const TbilisiMap = ({ highlightEvent }: TbilisiMapProps = {}) => {
     for (const event of events) {
       try {
         const response = await fetch(
-          `https://api.mapbox.com/directions/v5/mapbox/walking/${userLocation[0]},${userLocation[1]};${event.location_lng},${event.location_lat}?geometries=geojson&access_token=${mapboxToken}`
+          `https://api.mapbox.com/directions/v5/mapbox/walking/${userLocation[0]},${userLocation[1]};${event.location_lng},${event.location_lat}?geometries=geojson&access_token=${MAPBOX_TOKEN}`
         );
         const data = await response.json();
         
@@ -253,61 +241,6 @@ const TbilisiMap = ({ highlightEvent }: TbilisiMapProps = {}) => {
       });
     }
   };
-
-  const handleSaveToken = () => {
-    if (tokenInput.trim()) {
-      localStorage.setItem(STORAGE_KEY, tokenInput.trim());
-      setMapboxToken(tokenInput.trim());
-      setIsTokenSet(true);
-      toast({
-        title: "Token saved!",
-        description: "Your Mapbox token has been saved. The map will now load.",
-      });
-    }
-  };
-
-  if (!isTokenSet) {
-    return (
-      <div className="relative w-full h-full flex items-center justify-center bg-card rounded-lg border border-border">
-        <div className="max-w-md w-full p-6 space-y-4">
-          <div className="text-center space-y-2">
-            <MapPin className="w-12 h-12 mx-auto text-primary" />
-            <h3 className="text-xl font-bold">Mapbox Token Required</h3>
-            <p className="text-sm text-muted-foreground">
-              To display the interactive map with routes, please enter your Mapbox public token.
-            </p>
-          </div>
-          
-          <div className="space-y-3">
-            <Input
-              type="text"
-              placeholder="pk.eyJ1IjoieW91cnVzZXJuYW1lIi..."
-              value={tokenInput}
-              onChange={(e) => setTokenInput(e.target.value)}
-              className="font-mono text-sm"
-            />
-            <Button onClick={handleSaveToken} className="w-full">
-              Save Token
-            </Button>
-          </div>
-          
-          <div className="text-xs text-muted-foreground space-y-1">
-            <p>Get your free token at:</p>
-            <a 
-              href="https://account.mapbox.com/access-tokens/" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="text-primary hover:underline block"
-            >
-              https://account.mapbox.com/access-tokens/
-            </a>
-            <p className="pt-2">• Your token will be saved locally in your browser</p>
-            <p>• Mapbox offers 50,000+ free requests/month</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="relative w-full h-full">
