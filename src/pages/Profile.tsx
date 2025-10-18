@@ -99,9 +99,11 @@ const Profile = () => {
       console.error('Error fetching profile:', error);
       toast({
         title: "Error",
-        description: "Failed to load profile. Please try refreshing the page.",
+        description: "Failed to load profile. Please refresh the page.",
         variant: "destructive",
       });
+      // Set loading to false even on error so page doesn't stay blank
+      setLoading(false);
     } finally {
       setLoading(false);
     }
