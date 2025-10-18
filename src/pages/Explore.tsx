@@ -159,7 +159,7 @@ const Explore = () => {
                     title={event.title}
                     category={event.category}
                     location={event.location_name}
-                    time={new Date(event.time).toLocaleString()}
+                    time={new Date(event.time).toLocaleDateString() + ' ' + new Date(event.time).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false })}
                     credits={event.price}
                     image={event.image_url}
                   />
