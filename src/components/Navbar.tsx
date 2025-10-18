@@ -93,7 +93,6 @@ export const Navbar = () => {
               >
                 <Coins className="w-4 h-4" />
                 Credits
-                {user && <span className="text-primary font-bold">({credits})</span>}
               </Button>
             </Link>
             
