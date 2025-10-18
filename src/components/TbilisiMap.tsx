@@ -1,71 +1,140 @@
-import { useEffect, useState, useRef } from "react";
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
-import L from 'leaflet';
+import { useEffect, useRef, useState } from "react";
+import mapboxgl from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { MapPin } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
-// Fix for default marker icons
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-});
+const STORAGE_KEY = 'mapbox_token';
 
 interface TbilisiMapProps {
   highlightEvent?: { lat: number; lng: number };
 }
 
-interface Event {
-  id: string;
-  title: string;
-  description: string;
-  location_name: string;
-  location_lat: number;
-  location_lng: number;
-  time: string;
-  category: string;
-  price: number;
-  image_url?: string;
-}
-
-const eventIcon = new L.Icon({
-  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41]
-});
-
-const userIcon = new L.Icon({
-  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-orange.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41]
-});
-
-
 const TbilisiMap = ({ highlightEvent }: TbilisiMapProps = {}) => {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const [events, setEvents] = useState<Event[]>([]);
+  const mapContainer = useRef<HTMLDivElement>(null);
+  const map = useRef<mapboxgl.Map | null>(null);
+  const [events, setEvents] = useState<any[]>([]);
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
-  const mapRef = useRef<L.Map | null>(null);
+  const markers = useRef<mapboxgl.Marker[]>([]);
+  const [mapboxToken, setMapboxToken] = useState<string>('');
+  const [tokenInput, setTokenInput] = useState<string>('');
+  const [isTokenSet, setIsTokenSet] = useState<boolean>(false);
 
   useEffect(() => {
-    fetchEvents();
-    getUserLocation();
+    // Check if token exists in localStorage
+    const savedToken = localStorage.getItem(STORAGE_KEY);
+    if (savedToken) {
+      setMapboxToken(savedToken);
+      setIsTokenSet(true);
+    }
   }, []);
 
   useEffect(() => {
-    if (highlightEvent && mapRef.current) {
-      mapRef.current.flyTo([highlightEvent.lat, highlightEvent.lng], 15, { duration: 2 });
+    if (!mapContainer.current || map.current || !isTokenSet || !mapboxToken) return;
+
+    mapboxgl.accessToken = mapboxToken;
+    
+    map.current = new mapboxgl.Map({
+      container: mapContainer.current,
+      style: 'mapbox://styles/mapbox/dark-v11',
+      center: [44.8271, 41.7151],
+      zoom: 12,
+    });
+
+    map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
+    
+    getUserLocation();
+    fetchEvents();
+
+    return () => {
+      markers.current.forEach(marker => marker.remove());
+      map.current?.remove();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!map.current || !events.length) return;
+    
+    // Clear existing markers
+    markers.current.forEach(marker => marker.remove());
+    markers.current = [];
+
+    // Add event markers
+    events.forEach((event) => {
+      const el = document.createElement('div');
+      el.className = 'custom-marker';
+      el.innerHTML = `
+        <div class="marker-pin">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="hsl(160 85% 45%)" stroke="white" stroke-width="2"/>
+            <circle cx="12" cy="9" r="2.5" fill="white"/>
+          </svg>
+        </div>
+      `;
+      
+      el.style.cursor = 'pointer';
+      
+      const marker = new mapboxgl.Marker(el)
+        .setLngLat([event.location_lng, event.location_lat])
+        .setPopup(
+          new mapboxgl.Popup({ offset: 25, className: 'event-popup' })
+            .setHTML(`
+              <div class="p-3 min-w-[200px]">
+                <h3 class="font-bold text-base mb-1">${event.title}</h3>
+                <p class="text-xs opacity-70 mb-2">${event.category}</p>
+                <p class="text-xs mb-2">${event.location_name}</p>
+                <p class="text-xs mb-2">${new Date(event.time).toLocaleDateString()}</p>
+                <button 
+                  class="view-event-btn w-full py-2 px-3 rounded text-sm font-medium transition-smooth"
+                  data-event-id="${event.id}"
+                  style="background: hsl(160 85% 45%); color: white;"
+                  onmouseover="this.style.background='hsl(160 85% 55%)'"
+                  onmouseout="this.style.background='hsl(160 85% 45%)'"
+                >
+                  View Details
+                </button>
+              </div>
+            `)
+        )
+        .addTo(map.current);
+
+      markers.current.push(marker);
+
+      // Add click handler for marker
+      el.addEventListener('click', () => {
+        marker.togglePopup();
+      });
+    });
+
+    // Add click listeners for buttons in popups
+    setTimeout(() => {
+      document.querySelectorAll('.view-event-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const eventId = (e.target as HTMLElement).dataset.eventId;
+          if (eventId) navigate(`/event/${eventId}`);
+        });
+      });
+    }, 100);
+
+    // Draw routes from user location to all events
+    if (userLocation && map.current) {
+      drawRoutesToEvents();
+    }
+  }, [events, userLocation, navigate]);
+
+  useEffect(() => {
+    if (highlightEvent && map.current) {
+      map.current.flyTo({
+        center: [highlightEvent.lng, highlightEvent.lat],
+        zoom: 15,
+        duration: 2000
+      });
     }
   }, [highlightEvent]);
 
@@ -73,17 +142,94 @@ const TbilisiMap = ({ highlightEvent }: TbilisiMapProps = {}) => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          setUserLocation([position.coords.latitude, position.coords.longitude]);
+          const coords: [number, number] = [position.coords.longitude, position.coords.latitude];
+          setUserLocation(coords);
+          
+          if (map.current) {
+            // Add user location marker
+            const el = document.createElement('div');
+            el.innerHTML = `
+              <div class="user-marker">
+                <div class="pulse"></div>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="12" cy="12" r="8" fill="hsl(35 95% 60%)" stroke="white" stroke-width="3"/>
+                </svg>
+              </div>
+            `;
+            
+            new mapboxgl.Marker(el)
+              .setLngLat(coords)
+              .setPopup(new mapboxgl.Popup().setHTML('<p class="text-sm font-medium">Your Location</p>'))
+              .addTo(map.current);
+          }
         },
         (error) => {
           console.error("Error getting location:", error);
           toast({
             title: "Location access denied",
-            description: "Enable location to see your position on the map",
+            description: "Enable location to see routes to events",
             variant: "destructive",
           });
         }
       );
+    }
+  };
+
+  const drawRoutesToEvents = async () => {
+    if (!map.current || !userLocation || !events.length) return;
+
+    // Remove existing route layers
+    if (map.current.getLayer('routes')) {
+      map.current.removeLayer('routes');
+    }
+    if (map.current.getSource('routes')) {
+      map.current.removeSource('routes');
+    }
+
+    const routes: any[] = [];
+
+    for (const event of events) {
+      try {
+        const response = await fetch(
+          `https://api.mapbox.com/directions/v5/mapbox/walking/${userLocation[0]},${userLocation[1]};${event.location_lng},${event.location_lat}?geometries=geojson&access_token=${mapboxToken}`
+        );
+        const data = await response.json();
+        
+        if (data.routes && data.routes[0]) {
+          routes.push(data.routes[0].geometry);
+        }
+      } catch (error) {
+        console.error('Error fetching route:', error);
+      }
+    }
+
+    if (routes.length > 0 && map.current) {
+      map.current.addSource('routes', {
+        type: 'geojson',
+        data: {
+          type: 'FeatureCollection',
+          features: routes.map(geometry => ({
+            type: 'Feature',
+            properties: {},
+            geometry
+          }))
+        }
+      });
+
+      map.current.addLayer({
+        id: 'routes',
+        type: 'line',
+        source: 'routes',
+        layout: {
+          'line-join': 'round',
+          'line-cap': 'round'
+        },
+        paint: {
+          'line-color': 'hsl(160 85% 45%)',
+          'line-width': 3,
+          'line-opacity': 0.6
+        }
+      });
     }
   };
 
@@ -108,83 +254,109 @@ const TbilisiMap = ({ highlightEvent }: TbilisiMapProps = {}) => {
     }
   };
 
-  const getDirections = (eventLat: number, eventLng: number) => {
-    if (userLocation) {
-      const loc = userLocation as [number, number];
-      const url = `https://www.google.com/maps/dir/?api=1&origin=${loc[0]},${loc[1]}&destination=${eventLat},${eventLng}&travelmode=walking`;
-      window.open(url, '_blank');
-    } else {
+  const handleSaveToken = () => {
+    if (tokenInput.trim()) {
+      localStorage.setItem(STORAGE_KEY, tokenInput.trim());
+      setMapboxToken(tokenInput.trim());
+      setIsTokenSet(true);
       toast({
-        title: "Location not available",
-        description: "Please enable location access to get directions",
-        variant: "destructive",
+        title: "Token saved!",
+        description: "Your Mapbox token has been saved. The map will now load.",
       });
     }
   };
 
-  const defaultCenter: [number, number] = [41.7151, 44.8271];
+  if (!isTokenSet) {
+    return (
+      <div className="relative w-full h-full flex items-center justify-center bg-card rounded-lg border border-border">
+        <div className="max-w-md w-full p-6 space-y-4">
+          <div className="text-center space-y-2">
+            <MapPin className="w-12 h-12 mx-auto text-primary" />
+            <h3 className="text-xl font-bold">Mapbox Token Required</h3>
+            <p className="text-sm text-muted-foreground">
+              To display the interactive map with routes, please enter your Mapbox public token.
+            </p>
+          </div>
+          
+          <div className="space-y-3">
+            <Input
+              type="text"
+              placeholder="pk.eyJ1IjoieW91cnVzZXJuYW1lIi..."
+              value={tokenInput}
+              onChange={(e) => setTokenInput(e.target.value)}
+              className="font-mono text-sm"
+            />
+            <Button onClick={handleSaveToken} className="w-full">
+              Save Token
+            </Button>
+          </div>
+          
+          <div className="text-xs text-muted-foreground space-y-1">
+            <p>Get your free token at:</p>
+            <a 
+              href="https://account.mapbox.com/access-tokens/" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-primary hover:underline block"
+            >
+              https://account.mapbox.com/access-tokens/
+            </a>
+            <p className="pt-2">• Your token will be saved locally in your browser</p>
+            <p>• Mapbox offers 50,000+ free requests/month</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="relative w-full h-full rounded-lg overflow-hidden">
-      <MapContainer
-        center={defaultCenter}
-        zoom={12}
-        style={{ height: '100%', width: '100%' }}
-        className="z-0"
-        ref={mapRef}
-      >
-        <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        />
-
-        {userLocation && (
-          <Marker position={userLocation} icon={userIcon}>
-            <Popup>
-              <div className="text-sm font-medium">Your Location</div>
-            </Popup>
-          </Marker>
-        )}
-
-        {events.map((event) => {
-          const eventPosition: [number, number] = [event.location_lat, event.location_lng];
-          return (
-            <Marker
-              key={event.id}
-              position={eventPosition}
-              icon={eventIcon}
-            >
-              <Popup>
-                <div className="p-2 min-w-[200px]">
-                  <h3 className="font-bold text-base mb-1 text-gray-900">{event.title}</h3>
-                  <p className="text-xs text-gray-600 mb-2">{event.category}</p>
-                  <p className="text-xs mb-2 text-gray-700">{event.location_name}</p>
-                  <p className="text-xs mb-2 text-gray-700">
-                    {new Date(event.time).toLocaleDateString()}
-                  </p>
-                  <div className="flex gap-2 mt-3">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => getDirections(event.location_lat, event.location_lng)}
-                      className="flex-1 text-xs"
-                    >
-                      Directions
-                    </Button>
-                    <Button
-                      size="sm"
-                      onClick={() => navigate(`/event/${event.id}`)}
-                      className="flex-1 text-xs"
-                    >
-                      View Details
-                    </Button>
-                  </div>
-                </div>
-              </Popup>
-            </Marker>
-          );
-        })}
-      </MapContainer>
+    <div className="relative w-full h-full">
+      <div ref={mapContainer} className="absolute inset-0 rounded-lg" />
+      <style>{`
+        .custom-marker {
+          cursor: pointer;
+          transition: transform 0.2s;
+        }
+        .custom-marker:hover {
+          transform: scale(1.1);
+        }
+        .marker-pin {
+          filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
+        }
+        .user-marker {
+          position: relative;
+        }
+        .pulse {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 24px;
+          height: 24px;
+          border-radius: 50%;
+          background: hsl(35 95% 60% / 0.5);
+          animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+          0% {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+          }
+          100% {
+            transform: translate(-50%, -50%) scale(2.5);
+            opacity: 0;
+          }
+        }
+        .mapboxgl-popup-content {
+          background: hsl(240 8% 8%) !important;
+          color: hsl(240 5% 98%) !important;
+          border-radius: 0.5rem !important;
+          box-shadow: 0 10px 40px rgba(0,0,0,0.5) !important;
+        }
+        .mapboxgl-popup-tip {
+          border-top-color: hsl(240 8% 8%) !important;
+        }
+      `}</style>
     </div>
   );
 };
