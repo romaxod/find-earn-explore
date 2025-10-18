@@ -10,7 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { format } from "date-fns";
+import { format, startOfDay, endOfDay, addDays, startOfWeek, endOfWeek } from "date-fns";
 import { cn } from "@/lib/utils";
 
 const Explore = () => {
@@ -26,6 +26,7 @@ const Explore = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [user, setUser] = useState<any>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [dateFilter, setDateFilter] = useState<"all" | "today" | "tomorrow" | "week">("all");
 
   useEffect(() => {
     checkAuth();
@@ -95,11 +96,38 @@ const Explore = () => {
       event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       event.location_name.toLowerCase().includes(searchQuery.toLowerCase());
     
-    const matchesDate = !selectedDate || 
-      format(new Date(event.time), 'yyyy-MM-dd') === format(selectedDate, 'yyyy-MM-dd');
+    const eventDate = new Date(event.time);
+    const now = new Date();
+    
+    let matchesDate = true;
+    
+    // If specific date is selected
+    if (selectedDate) {
+      matchesDate = format(eventDate, 'yyyy-MM-dd') === format(selectedDate, 'yyyy-MM-dd');
+    }
+    // Date filter logic
+    else if (dateFilter === "today") {
+      const todayStart = startOfDay(now);
+      const todayEnd = endOfDay(now);
+      matchesDate = eventDate >= todayStart && eventDate <= todayEnd;
+    } else if (dateFilter === "tomorrow") {
+      const tomorrow = addDays(now, 1);
+      const tomorrowStart = startOfDay(tomorrow);
+      const tomorrowEnd = endOfDay(tomorrow);
+      matchesDate = eventDate >= tomorrowStart && eventDate <= tomorrowEnd;
+    } else if (dateFilter === "week") {
+      const weekStart = startOfWeek(now, { weekStartsOn: 1 }); // Monday
+      const weekEnd = endOfWeek(now, { weekStartsOn: 1 }); // Sunday
+      matchesDate = eventDate >= weekStart && eventDate <= weekEnd;
+    }
     
     return matchesCategory && matchesSearch && matchesDate;
   });
+
+  const handleDateFilterClick = (filter: "all" | "today" | "tomorrow" | "week") => {
+    setDateFilter(filter);
+    setSelectedDate(undefined); // Clear specific date selection
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -135,33 +163,60 @@ const Explore = () => {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="h-12 px-6 gap-2">
-                  <CalendarIcon className="w-5 h-5" />
-                  {selectedDate ? format(selectedDate, "MMM dd, yyyy") : "Filter by Date"}
-                  {selectedDate && (
-                    <X 
-                      className="w-4 h-4 ml-1 hover:text-destructive" 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedDate(undefined);
-                      }}
-                    />
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="end">
-                <Calendar
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={setSelectedDate}
-                  initialFocus
-                  className={cn("p-3 pointer-events-auto")}
-                  disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
-                />
-              </PopoverContent>
-            </Popover>
+            <div className="flex gap-2 flex-wrap md:flex-nowrap">
+              <Button 
+                variant={dateFilter === "today" ? "default" : "outline"} 
+                className="h-12 px-4"
+                onClick={() => handleDateFilterClick("today")}
+              >
+                Today
+              </Button>
+              <Button 
+                variant={dateFilter === "tomorrow" ? "default" : "outline"} 
+                className="h-12 px-4"
+                onClick={() => handleDateFilterClick("tomorrow")}
+              >
+                Tomorrow
+              </Button>
+              <Button 
+                variant={dateFilter === "week" ? "default" : "outline"} 
+                className="h-12 px-4"
+                onClick={() => handleDateFilterClick("week")}
+              >
+                This Week
+              </Button>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="h-12 px-6 gap-2">
+                    <CalendarIcon className="w-5 h-5" />
+                    {selectedDate ? format(selectedDate, "MMM dd") : "Date"}
+                    {selectedDate && (
+                      <X 
+                        className="w-4 h-4 ml-1 hover:text-destructive" 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedDate(undefined);
+                          setDateFilter("all");
+                        }}
+                      />
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="end">
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={(date) => {
+                      setSelectedDate(date);
+                      setDateFilter("all");
+                    }}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                    disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
           </div>
           
           <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
