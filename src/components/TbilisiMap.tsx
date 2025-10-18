@@ -1,6 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import mapboxgl from 'mapbox-gl';
-import 'mapbox-gl/dist/mapbox-gl.css';
+import { useEffect, useState } from "react";
+import { GoogleMap, useJsApiLoader, Marker, DirectionsRenderer, InfoWindow } from '@react-google-maps/api';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
@@ -8,7 +7,8 @@ import { MapPin } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
-const STORAGE_KEY = 'mapbox_token';
+const STORAGE_KEY = 'google_maps_api_key';
+const libraries: ("places" | "drawing" | "geometry" | "visualization")[] = ["places"];
 
 interface TbilisiMapProps {
   highlightEvent?: { lat: number; lng: number };
@@ -17,151 +17,57 @@ interface TbilisiMapProps {
 const TbilisiMap = ({ highlightEvent }: TbilisiMapProps = {}) => {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const mapContainer = useRef<HTMLDivElement>(null);
-  const map = useRef<mapboxgl.Map | null>(null);
   const [events, setEvents] = useState<any[]>([]);
-  const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
-  const markers = useRef<mapboxgl.Marker[]>([]);
-  const [mapboxToken, setMapboxToken] = useState<string>('');
+  const [userLocation, setUserLocation] = useState<google.maps.LatLngLiteral | null>(null);
+  const [apiKey, setApiKey] = useState<string>('');
   const [tokenInput, setTokenInput] = useState<string>('');
   const [isTokenSet, setIsTokenSet] = useState<boolean>(false);
+  const [map, setMap] = useState<google.maps.Map | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<any>(null);
+  const [directions, setDirections] = useState<google.maps.DirectionsResult[]>([]);
+
+  const { isLoaded } = useJsApiLoader({
+    id: 'google-map-script',
+    googleMapsApiKey: apiKey,
+    libraries
+  });
 
   useEffect(() => {
-    // Check if token exists in localStorage
     const savedToken = localStorage.getItem(STORAGE_KEY);
     if (savedToken) {
-      setMapboxToken(savedToken);
+      setApiKey(savedToken);
       setIsTokenSet(true);
     }
   }, []);
 
   useEffect(() => {
-    if (!mapContainer.current || map.current || !isTokenSet || !mapboxToken) return;
-
-    mapboxgl.accessToken = mapboxToken;
-    
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/dark-v11',
-      center: [44.8271, 41.7151],
-      zoom: 12,
-    });
-
-    map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
-    
-    getUserLocation();
-    fetchEvents();
-
-    return () => {
-      markers.current.forEach(marker => marker.remove());
-      map.current?.remove();
-    };
-  }, []);
+    if (isTokenSet && isLoaded) {
+      fetchEvents();
+      getUserLocation();
+    }
+  }, [isTokenSet, isLoaded]);
 
   useEffect(() => {
-    if (!map.current || !events.length) return;
-    
-    // Clear existing markers
-    markers.current.forEach(marker => marker.remove());
-    markers.current = [];
-
-    // Add event markers
-    events.forEach((event) => {
-      const el = document.createElement('div');
-      el.className = 'custom-marker';
-      el.innerHTML = `
-        <div class="marker-pin">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="hsl(160 85% 45%)" stroke="white" stroke-width="2"/>
-            <circle cx="12" cy="9" r="2.5" fill="white"/>
-          </svg>
-        </div>
-      `;
-      
-      el.style.cursor = 'pointer';
-      
-      const marker = new mapboxgl.Marker(el)
-        .setLngLat([event.location_lng, event.location_lat])
-        .setPopup(
-          new mapboxgl.Popup({ offset: 25, className: 'event-popup' })
-            .setHTML(`
-              <div class="p-3 min-w-[200px]">
-                <h3 class="font-bold text-base mb-1">${event.title}</h3>
-                <p class="text-xs opacity-70 mb-2">${event.category}</p>
-                <p class="text-xs mb-2">${event.location_name}</p>
-                <p class="text-xs mb-2">${new Date(event.time).toLocaleDateString()}</p>
-                <button 
-                  class="view-event-btn w-full py-2 px-3 rounded text-sm font-medium transition-smooth"
-                  data-event-id="${event.id}"
-                  style="background: hsl(160 85% 45%); color: white;"
-                  onmouseover="this.style.background='hsl(160 85% 55%)'"
-                  onmouseout="this.style.background='hsl(160 85% 45%)'"
-                >
-                  View Details
-                </button>
-              </div>
-            `)
-        )
-        .addTo(map.current);
-
-      markers.current.push(marker);
-
-      // Add click handler for marker
-      el.addEventListener('click', () => {
-        marker.togglePopup();
-      });
-    });
-
-    // Add click listeners for buttons in popups
-    setTimeout(() => {
-      document.querySelectorAll('.view-event-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          const eventId = (e.target as HTMLElement).dataset.eventId;
-          if (eventId) navigate(`/event/${eventId}`);
-        });
-      });
-    }, 100);
-
-    // Draw routes from user location to all events
-    if (userLocation && map.current) {
+    if (userLocation && events.length > 0 && isLoaded) {
       drawRoutesToEvents();
     }
-  }, [events, userLocation, navigate]);
+  }, [userLocation, events, isLoaded]);
 
   useEffect(() => {
-    if (highlightEvent && map.current) {
-      map.current.flyTo({
-        center: [highlightEvent.lng, highlightEvent.lat],
-        zoom: 15,
-        duration: 2000
-      });
+    if (highlightEvent && map) {
+      map.panTo({ lat: highlightEvent.lat, lng: highlightEvent.lng });
+      map.setZoom(15);
     }
-  }, [highlightEvent]);
+  }, [highlightEvent, map]);
 
   const getUserLocation = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          const coords: [number, number] = [position.coords.longitude, position.coords.latitude];
-          setUserLocation(coords);
-          
-          if (map.current) {
-            // Add user location marker
-            const el = document.createElement('div');
-            el.innerHTML = `
-              <div class="user-marker">
-                <div class="pulse"></div>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <circle cx="12" cy="12" r="8" fill="hsl(35 95% 60%)" stroke="white" stroke-width="3"/>
-                </svg>
-              </div>
-            `;
-            
-            new mapboxgl.Marker(el)
-              .setLngLat(coords)
-              .setPopup(new mapboxgl.Popup().setHTML('<p class="text-sm font-medium">Your Location</p>'))
-              .addTo(map.current);
-          }
+          setUserLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          });
         },
         (error) => {
           console.error("Error getting location:", error);
@@ -176,61 +82,25 @@ const TbilisiMap = ({ highlightEvent }: TbilisiMapProps = {}) => {
   };
 
   const drawRoutesToEvents = async () => {
-    if (!map.current || !userLocation || !events.length) return;
+    if (!userLocation || !events.length || !window.google) return;
 
-    // Remove existing route layers
-    if (map.current.getLayer('routes')) {
-      map.current.removeLayer('routes');
-    }
-    if (map.current.getSource('routes')) {
-      map.current.removeSource('routes');
-    }
-
-    const routes: any[] = [];
+    const directionsService = new google.maps.DirectionsService();
+    const allDirections: google.maps.DirectionsResult[] = [];
 
     for (const event of events) {
       try {
-        const response = await fetch(
-          `https://api.mapbox.com/directions/v5/mapbox/walking/${userLocation[0]},${userLocation[1]};${event.location_lng},${event.location_lat}?geometries=geojson&access_token=${mapboxToken}`
-        );
-        const data = await response.json();
-        
-        if (data.routes && data.routes[0]) {
-          routes.push(data.routes[0].geometry);
-        }
+        const result = await directionsService.route({
+          origin: userLocation,
+          destination: { lat: event.location_lat, lng: event.location_lng },
+          travelMode: google.maps.TravelMode.WALKING,
+        });
+        allDirections.push(result);
       } catch (error) {
         console.error('Error fetching route:', error);
       }
     }
 
-    if (routes.length > 0 && map.current) {
-      map.current.addSource('routes', {
-        type: 'geojson',
-        data: {
-          type: 'FeatureCollection',
-          features: routes.map(geometry => ({
-            type: 'Feature',
-            properties: {},
-            geometry
-          }))
-        }
-      });
-
-      map.current.addLayer({
-        id: 'routes',
-        type: 'line',
-        source: 'routes',
-        layout: {
-          'line-join': 'round',
-          'line-cap': 'round'
-        },
-        paint: {
-          'line-color': 'hsl(160 85% 45%)',
-          'line-width': 3,
-          'line-opacity': 0.6
-        }
-      });
-    }
+    setDirections(allDirections);
   };
 
   const fetchEvents = async () => {
@@ -257,11 +127,11 @@ const TbilisiMap = ({ highlightEvent }: TbilisiMapProps = {}) => {
   const handleSaveToken = () => {
     if (tokenInput.trim()) {
       localStorage.setItem(STORAGE_KEY, tokenInput.trim());
-      setMapboxToken(tokenInput.trim());
+      setApiKey(tokenInput.trim());
       setIsTokenSet(true);
       toast({
-        title: "Token saved!",
-        description: "Your Mapbox token has been saved. The map will now load.",
+        title: "API Key saved!",
+        description: "Your Google Maps API key has been saved. The map will now load.",
       });
     }
   };
@@ -272,92 +142,129 @@ const TbilisiMap = ({ highlightEvent }: TbilisiMapProps = {}) => {
         <div className="max-w-md w-full p-6 space-y-4">
           <div className="text-center space-y-2">
             <MapPin className="w-12 h-12 mx-auto text-primary" />
-            <h3 className="text-xl font-bold">Mapbox Token Required</h3>
+            <h3 className="text-xl font-bold">Google Maps API Key Required</h3>
             <p className="text-sm text-muted-foreground">
-              To display the interactive map with routes, please enter your Mapbox public token.
+              To display the interactive map with routes, please enter your Google Maps API key.
             </p>
           </div>
           
           <div className="space-y-3">
             <Input
               type="text"
-              placeholder="pk.eyJ1IjoieW91cnVzZXJuYW1lIi..."
+              placeholder="AIzaSyB..."
               value={tokenInput}
               onChange={(e) => setTokenInput(e.target.value)}
               className="font-mono text-sm"
             />
             <Button onClick={handleSaveToken} className="w-full">
-              Save Token
+              Save API Key
             </Button>
           </div>
           
           <div className="text-xs text-muted-foreground space-y-1">
-            <p>Get your free token at:</p>
+            <p>Get your API key at:</p>
             <a 
-              href="https://account.mapbox.com/access-tokens/" 
+              href="https://console.cloud.google.com/google/maps-apis" 
               target="_blank" 
               rel="noopener noreferrer"
               className="text-primary hover:underline block"
             >
-              https://account.mapbox.com/access-tokens/
+              Google Cloud Console
             </a>
-            <p className="pt-2">• Your token will be saved locally in your browser</p>
-            <p>• Mapbox offers 50,000+ free requests/month</p>
+            <p className="pt-2">• Your key will be saved locally in your browser</p>
+            <p>• Enable Maps JavaScript API and Directions API</p>
           </div>
         </div>
       </div>
     );
   }
 
+  if (!isLoaded) {
+    return <div className="w-full h-full flex items-center justify-center">Loading map...</div>;
+  }
+
+  const mapStyles = {
+    dark: [
+      { elementType: "geometry", stylers: [{ color: "#1a1a1a" }] },
+      { elementType: "labels.text.stroke", stylers: [{ color: "#1a1a1a" }] },
+      { elementType: "labels.text.fill", stylers: [{ color: "#888888" }] },
+      { featureType: "road", elementType: "geometry", stylers: [{ color: "#2c2c2c" }] },
+      { featureType: "water", elementType: "geometry", stylers: [{ color: "#000000" }] },
+    ]
+  };
+
   return (
-    <div className="relative w-full h-full">
-      <div ref={mapContainer} className="absolute inset-0 rounded-lg" />
-      <style>{`
-        .custom-marker {
-          cursor: pointer;
-          transition: transform 0.2s;
-        }
-        .custom-marker:hover {
-          transform: scale(1.1);
-        }
-        .marker-pin {
-          filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
-        }
-        .user-marker {
-          position: relative;
-        }
-        .pulse {
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          width: 24px;
-          height: 24px;
-          border-radius: 50%;
-          background: hsl(35 95% 60% / 0.5);
-          animation: pulse 2s infinite;
-        }
-        @keyframes pulse {
-          0% {
-            transform: translate(-50%, -50%) scale(1);
-            opacity: 1;
-          }
-          100% {
-            transform: translate(-50%, -50%) scale(2.5);
-            opacity: 0;
-          }
-        }
-        .mapboxgl-popup-content {
-          background: hsl(240 8% 8%) !important;
-          color: hsl(240 5% 98%) !important;
-          border-radius: 0.5rem !important;
-          box-shadow: 0 10px 40px rgba(0,0,0,0.5) !important;
-        }
-        .mapboxgl-popup-tip {
-          border-top-color: hsl(240 8% 8%) !important;
-        }
-      `}</style>
-    </div>
+    <GoogleMap
+      mapContainerStyle={{ width: '100%', height: '100%' }}
+      center={{ lat: 41.7151, lng: 44.8271 }}
+      zoom={12}
+      onLoad={setMap}
+      options={{
+        styles: mapStyles.dark,
+        disableDefaultUI: false,
+        zoomControl: true,
+      }}
+    >
+      {userLocation && (
+        <Marker
+          position={userLocation}
+          icon={{
+            path: google.maps.SymbolPath.CIRCLE,
+            scale: 10,
+            fillColor: "#f59e0b",
+            fillOpacity: 1,
+            strokeColor: "#ffffff",
+            strokeWeight: 3,
+          }}
+        />
+      )}
+
+      {events.map((event) => (
+        <Marker
+          key={event.id}
+          position={{ lat: event.location_lat, lng: event.location_lng }}
+          onClick={() => setSelectedEvent(event)}
+          icon={{
+            url: "data:image/svg+xml,%3Csvg width='32' height='32' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z' fill='%2310b981' stroke='white' stroke-width='2'/%3E%3Ccircle cx='12' cy='9' r='2.5' fill='white'/%3E%3C/svg%3E",
+          }}
+        />
+      ))}
+
+      {selectedEvent && (
+        <InfoWindow
+          position={{ lat: selectedEvent.location_lat, lng: selectedEvent.location_lng }}
+          onCloseClick={() => setSelectedEvent(null)}
+        >
+          <div className="p-3 min-w-[200px]">
+            <h3 className="font-bold text-base mb-1 text-gray-900">{selectedEvent.title}</h3>
+            <p className="text-xs text-gray-600 mb-2">{selectedEvent.category}</p>
+            <p className="text-xs mb-2 text-gray-700">{selectedEvent.location_name}</p>
+            <p className="text-xs mb-2 text-gray-700">{new Date(selectedEvent.time).toLocaleDateString()}</p>
+            <button 
+              className="w-full py-2 px-3 rounded text-sm font-medium bg-primary text-white hover:bg-primary/90"
+              onClick={() => navigate(`/event/${selectedEvent.id}`)}
+            >
+              View Details
+            </button>
+          </div>
+        </InfoWindow>
+      )}
+
+      {directions.map((direction, index) => (
+        <DirectionsRenderer
+          key={index}
+          directions={direction}
+          options={{
+            polylineOptions: {
+              strokeColor: "#10b981",
+              strokeOpacity: 0.6,
+              strokeWeight: 3,
+            },
+            suppressMarkers: true,
+          }}
+        />
+      ))}
+    </GoogleMap>
   );
 };
 
