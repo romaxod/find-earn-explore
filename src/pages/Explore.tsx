@@ -15,6 +15,7 @@ const Explore = () => {
   
   const mockEvents = [
     {
+      id: "1",
       title: "Electric Sunset: Summer Rooftop Party",
       category: "Nightlife",
       location: "Sky Lounge, Downtown",
@@ -24,6 +25,7 @@ const Explore = () => {
       distance: "1.2 km"
     },
     {
+      id: "2",
       title: "Contemporary Art Exhibition: Urban Dreams",
       category: "Arts",
       location: "Modern Art Museum",
@@ -33,6 +35,7 @@ const Explore = () => {
       distance: "2.5 km"
     },
     {
+      id: "3",
       title: "Jazz Under the Stars",
       category: "Music",
       location: "Central Park Amphitheater",
@@ -42,6 +45,7 @@ const Explore = () => {
       distance: "800 m"
     },
     {
+      id: "4",
       title: "Michelin Star Pop-Up Experience",
       category: "Food",
       location: "The Culinary Space",
@@ -51,6 +55,7 @@ const Explore = () => {
       distance: "3.1 km"
     },
     {
+      id: "5",
       title: "Sunrise Yoga in the Park",
       category: "Wellness",
       location: "Riverside Park",
@@ -60,6 +65,7 @@ const Explore = () => {
       distance: "1.8 km"
     },
     {
+      id: "6",
       title: "Underground Techno Marathon",
       category: "Nightlife",
       location: "The Basement Club",

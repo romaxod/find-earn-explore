@@ -44,7 +44,15 @@ export const Hero = () => {
                 Start Exploring
               </Button>
             </Link>
-            <Button variant="outline" size="lg" className="text-lg border-2">
+            <Button 
+              variant="outline" 
+              size="lg" 
+              className="text-lg border-2"
+              onClick={() => {
+                const featuresSection = document.getElementById('features');
+                featuresSection?.scrollIntoView({ behavior: 'smooth' });
+              }}
+            >
               Learn How It Works
             </Button>
           </div>

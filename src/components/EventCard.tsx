@@ -1,8 +1,10 @@
 import { Badge } from "@/components/ui/badge";
 import { Clock, MapPin, Coins } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 export interface EventCardProps {
+  id?: string;
   title: string;
   category: string;
   location: string;
@@ -13,6 +15,7 @@ export interface EventCardProps {
 }
 
 export const EventCard = ({ 
+  id = "1",
   title, 
   category, 
   location, 
@@ -61,9 +64,11 @@ export const EventCard = ({
           </div>
         </div>
         
-        <Button variant="accent" className="w-full">
-          View Details
-        </Button>
+        <Link to={`/event/${id}`}>
+          <Button variant="accent" className="w-full">
+            View Details
+          </Button>
+        </Link>
       </div>
     </div>
   );

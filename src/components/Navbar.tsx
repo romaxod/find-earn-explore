@@ -23,13 +23,15 @@ export const Navbar = () => {
                 Explore
               </Button>
             </Link>
-            <Button variant="ghost" className="gap-2">
+            <Button variant="ghost" className="gap-2" onClick={() => alert('Sign in coming soon!')}>
               <User className="w-4 h-4" />
               Sign In
             </Button>
-            <Button variant="hero" size="sm">
-              Get Started
-            </Button>
+            <Link to="/explore">
+              <Button variant="hero" size="sm">
+                Get Started
+              </Button>
+            </Link>
           </div>
         </div>
       </div>
