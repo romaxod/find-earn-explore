@@ -33,7 +33,7 @@ const Profile = () => {
   const [friends, setFriends] = useState<any[]>([]);
   const [friendRequests, setFriendRequests] = useState<any[]>([]);
   const [eventInvitations, setEventInvitations] = useState<any[]>([]);
-  const [searchEmail, setSearchEmail] = useState("");
+  const [searchUsername, setSearchUsername] = useState("");
   const [conversations, setConversations] = useState<any[]>([]);
 
   useEffect(() => {
@@ -230,14 +230,14 @@ const Profile = () => {
   };
 
   const handleSendFriendRequest = async () => {
-    if (!user || !searchEmail) return;
+    if (!user || !searchUsername) return;
     
     try {
-      // Find user by email
+      // Find user by username
       const { data: targetProfile, error: searchError } = await supabase
         .from('profiles')
-        .select('id')
-        .eq('email', searchEmail)
+        .select('id, name')
+        .ilike('name', searchUsername)
         .single();
       
       if (searchError) throw new Error("User not found");
@@ -264,10 +264,10 @@ const Profile = () => {
       
       toast({
         title: "Success",
-        description: "Friend request sent",
+        description: `Friend request sent to ${targetProfile.name}`,
       });
       
-      setSearchEmail("");
+      setSearchUsername("");
     } catch (error: any) {
       console.error('Error sending friend request:', error);
       toast({
@@ -668,9 +668,9 @@ const Profile = () => {
                 <CardContent>
                   <div className="flex gap-2">
                     <Input
-                      placeholder="Enter friend's email"
-                      value={searchEmail}
-                      onChange={(e) => setSearchEmail(e.target.value)}
+                      placeholder="Enter friend's username"
+                      value={searchUsername}
+                      onChange={(e) => setSearchUsername(e.target.value)}
                       onKeyPress={(e) => e.key === 'Enter' && handleSendFriendRequest()}
                     />
                     <Button onClick={handleSendFriendRequest}>
