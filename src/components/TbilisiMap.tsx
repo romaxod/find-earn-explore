@@ -86,7 +86,7 @@ const TbilisiMap = ({ highlightEvent, showDirections = true }: TbilisiMapProps =
                     class="w-full h-full object-cover"
                     onerror="this.src='https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=400&q=80'"
                   />
-                  <div class="absolute top-2 right-2 px-2 py-1 rounded text-xs font-medium" style="background: hsl(160 85% 45%); color: white;">
+                  <div class="absolute top-2 left-2 px-2 py-1 rounded text-xs font-medium" style="background: hsl(160 85% 45%); color: white;">
                     ${event.category}
                   </div>
                 </div>
