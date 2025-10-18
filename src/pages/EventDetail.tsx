@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Clock, Star, ArrowLeft, Navigation, Users, Check } from "lucide-react";
+import { MapPin, Clock, Star, ArrowLeft, Navigation, Users, Check, UserPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import TbilisiMap from "@/components/TbilisiMap";
@@ -282,15 +282,64 @@ const EventDetail = () => {
               {rsvps.length > 0 && (
                 <div className="space-y-3">
                   <h2 className="text-2xl font-bold">Who's Going ({rsvps.length})</h2>
-                  <div className="flex flex-wrap gap-3">
+                  <div className="grid gap-3">
                     {rsvps.map((rsvp) => (
-                      <div key={rsvp.id} className="flex items-center gap-2 bg-muted/50 rounded-full px-3 py-2">
-                        <Avatar className="w-6 h-6">
-                          <AvatarFallback className="text-xs">
-                            {rsvp.profiles?.name?.charAt(0).toUpperCase() || 'U'}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span className="text-sm font-medium">{rsvp.profiles?.name || 'User'}</span>
+                      <div key={rsvp.id} className="flex items-center justify-between bg-muted/50 rounded-lg px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          <Avatar className="w-10 h-10">
+                            <AvatarFallback className="text-sm">
+                              {rsvp.profiles?.name?.charAt(0).toUpperCase() || 'U'}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="font-medium">{rsvp.profiles?.name || 'User'}</p>
+                            <p className="text-sm text-muted-foreground">{rsvp.profiles?.email || ''}</p>
+                          </div>
+                        </div>
+                        {user && rsvp.user_id !== user.id && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={async () => {
+                              try {
+                                const { error } = await supabase
+                                  .from('friend_requests')
+                                  .insert({
+                                    sender_id: user.id,
+                                    receiver_id: rsvp.user_id,
+                                    status: 'pending'
+                                  });
+                                
+                                if (error) {
+                                  if (error.code === '23505') {
+                                    toast({
+                                      title: "Already sent",
+                                      description: "Friend request already exists",
+                                      variant: "destructive",
+                                    });
+                                  } else {
+                                    throw error;
+                                  }
+                                } else {
+                                  toast({
+                                    title: "Friend request sent! 🎉",
+                                    description: `Sent to ${rsvp.profiles?.name}`,
+                                  });
+                                }
+                              } catch (error: any) {
+                                console.error('Error:', error);
+                                toast({
+                                  title: "Error",
+                                  description: error.message || "Failed to send request",
+                                  variant: "destructive",
+                                });
+                              }
+                            }}
+                          >
+                            <UserPlus className="w-4 h-4 mr-2" />
+                            Add Friend
+                          </Button>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -314,11 +363,10 @@ const EventDetail = () => {
                 <Button 
                   className="gap-2" 
                   size="lg"
-                  variant={showDirections ? "outline" : "default"}
                   onClick={() => setShowDirections(!showDirections)}
                 >
                   <Navigation className="w-4 h-4" />
-                  {showDirections ? "Remove Directions" : "Get Directions"}
+                  {showDirections ? "Hide Route" : "Get Directions"}
                 </Button>
                 <Button 
                   variant={isGoing ? "outline" : "default"}
@@ -337,7 +385,7 @@ const EventDetail = () => {
                   onClick={handleAttendEvent}
                   disabled={attending}
                 >
-                  {attending ? "Checking in..." : "Check In & Earn Credits"}
+                  {attending ? "Checking in..." : "Check In & Earn"}
                 </Button>
               </div>
             </div>

@@ -141,7 +141,7 @@ export const InviteFriendsDialog = ({ eventId, eventTitle }: InviteFriendsDialog
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="gap-2" size="lg">
+        <Button className="gap-2" size="lg">
           <UserPlus className="w-4 h-4" />
           Invite Friends
         </Button>
