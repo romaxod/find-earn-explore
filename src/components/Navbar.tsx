@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { MapPin, Sparkles, User, Coins, LogOut } from "lucide-react";
+import { MapPin, Sparkles, User, Coins, LogOut, Compass } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -69,7 +69,7 @@ export const Navbar = () => {
           <div className="flex items-center gap-4">
             <Link to="/explore">
               <Button variant="ghost" className="gap-2">
-                <MapPin className="w-4 h-4" />
+                <Compass className="w-4 h-4" />
                 Explore
               </Button>
             </Link>

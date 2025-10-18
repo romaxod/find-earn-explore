@@ -64,7 +64,7 @@ export const EventCard = ({
           </div>
         </div>
         
-        <Link to={`/event/${id}`}>
+        <Link to={`/event/${id}`} className="block mt-2">
           <Button variant="accent" className="w-full">
             View Details
           </Button>
