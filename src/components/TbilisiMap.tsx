@@ -126,6 +126,13 @@ const TbilisiMap = ({ highlightEvent }: TbilisiMapProps = {}) => {
                 </div>
               </div>
             `)
+            .on('open', () => {
+              // Add click listener when popup opens
+              const btn = document.querySelector(`[data-event-id="${event.id}"]`);
+              if (btn) {
+                btn.addEventListener('click', () => navigate(`/event/${event.id}`));
+              }
+            })
         )
         .addTo(map.current);
 
@@ -136,16 +143,6 @@ const TbilisiMap = ({ highlightEvent }: TbilisiMapProps = {}) => {
         marker.togglePopup();
       });
     });
-
-    // Add click listeners for buttons in popups
-    setTimeout(() => {
-      document.querySelectorAll('.view-event-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          const eventId = (e.target as HTMLElement).dataset.eventId;
-          if (eventId) navigate(`/event/${eventId}`);
-        });
-      });
-    }, 100);
 
     // Draw routes from user location to all events
     if (userLocation && map.current) {
