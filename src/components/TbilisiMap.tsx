@@ -114,7 +114,7 @@ const TbilisiMap = ({ highlightEvent, showDirections = true }: TbilisiMapProps =
                         <circle cx="12" cy="12" r="10"/>
                         <polyline points="12 6 12 12 16 14"/>
                       </svg>
-                      <span>${new Date(event.time).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</span>
+                      <span>${new Date(event.time).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false })}</span>
                     </div>
                     <div class="flex items-center gap-1 font-semibold" style="color: hsl(160 85% 45%);">
                       <span>${event.price} ₾</span>

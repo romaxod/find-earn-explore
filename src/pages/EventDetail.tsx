@@ -265,7 +265,7 @@ const EventDetail = () => {
                   <div>
                     <div className="font-medium">{new Date(event.time).toLocaleDateString()}</div>
                     <div className="text-sm text-muted-foreground">
-                      {new Date(event.time).toLocaleTimeString()}
+                      {new Date(event.time).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false })}
                     </div>
                   </div>
                 </div>
