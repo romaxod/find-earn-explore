@@ -53,8 +53,13 @@ const TbilisiMap = ({ highlightEvent, showDirections = true }: TbilisiMapProps =
     markers.current.forEach(marker => marker.remove());
     markers.current = [];
 
+    // Filter events based on highlightEvent - only show specific event if provided
+    const eventsToShow = highlightEvent?.id 
+      ? events.filter(e => e.id === highlightEvent.id)
+      : events;
+
     // Add event markers
-    events.forEach((event) => {
+    eventsToShow.forEach((event) => {
       const el = document.createElement('div');
       el.className = 'custom-marker';
       el.innerHTML = `
