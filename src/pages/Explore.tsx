@@ -3,11 +3,15 @@ import { Navbar } from "@/components/Navbar";
 import { EventCard } from "@/components/EventCard";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Search, SlidersHorizontal } from "lucide-react";
+import { Search, SlidersHorizontal, CalendarIcon, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 const Explore = () => {
   const { toast } = useToast();
@@ -21,6 +25,7 @@ const Explore = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [user, setUser] = useState<any>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
 
   useEffect(() => {
     checkAuth();
@@ -89,7 +94,11 @@ const Explore = () => {
     const matchesSearch = searchQuery === "" || 
       event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       event.location_name.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesSearch;
+    
+    const matchesDate = !selectedDate || 
+      format(new Date(event.time), 'yyyy-MM-dd') === format(selectedDate, 'yyyy-MM-dd');
+    
+    return matchesCategory && matchesSearch && matchesDate;
   });
 
   return (
@@ -126,10 +135,33 @@ const Explore = () => {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            <Button variant="outline" className="h-12 px-6 gap-2">
-              <SlidersHorizontal className="w-5 h-5" />
-              Filters
-            </Button>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="h-12 px-6 gap-2">
+                  <CalendarIcon className="w-5 h-5" />
+                  {selectedDate ? format(selectedDate, "MMM dd, yyyy") : "Filter by Date"}
+                  {selectedDate && (
+                    <X 
+                      className="w-4 h-4 ml-1 hover:text-destructive" 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedDate(undefined);
+                      }}
+                    />
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="end">
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={setSelectedDate}
+                  initialFocus
+                  className={cn("p-3 pointer-events-auto")}
+                  disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                />
+              </PopoverContent>
+            </Popover>
           </div>
           
           <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
