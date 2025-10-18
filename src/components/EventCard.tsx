@@ -25,7 +25,7 @@ export const EventCard = ({
   distance 
 }: EventCardProps) => {
   return (
-    <div className="group rounded-2xl overflow-hidden gradient-card border border-border/50 hover:border-primary/50 transition-smooth shadow-card hover:shadow-glow">
+    <div className="group rounded-2xl overflow-hidden gradient-card border border-border/50 hover:border-primary/50 transition-smooth shadow-card hover:shadow-glow flex flex-col h-full">
       <div className="aspect-video relative overflow-hidden">
         <img 
           src={image} 
@@ -44,12 +44,12 @@ export const EventCard = ({
         )}
       </div>
       
-      <div className="p-6 space-y-4">
+      <div className="p-6 space-y-4 flex flex-col flex-grow">
         <h3 className="text-xl font-bold group-hover:text-primary transition-smooth line-clamp-2">
           {title}
         </h3>
         
-        <div className="space-y-2 text-sm text-muted-foreground">
+        <div className="space-y-2 text-sm text-muted-foreground flex-grow">
           <div className="flex items-center gap-2">
             <MapPin className="w-4 h-4 text-primary" />
             <span className="line-clamp-1">{location}</span>
@@ -64,7 +64,7 @@ export const EventCard = ({
           </div>
         </div>
         
-        <Link to={`/event/${id}`} className="block mt-2">
+        <Link to={`/event/${id}`} className="block">
           <Button variant="accent" className="w-full">
             View Details
           </Button>
