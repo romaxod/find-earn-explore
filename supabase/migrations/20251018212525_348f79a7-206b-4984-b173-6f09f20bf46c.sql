@@ -1,0 +1,26 @@
+-- Restore original internet-sourced images for events
+UPDATE events SET image_url = 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=800' WHERE title = 'Tbilisi Open Air Festival';
+UPDATE events SET image_url = 'https://images.unsplash.com/photo-1452626038306-9aae5e071dd3?w=800' WHERE title = 'Marathon Tbilisi 2025';
+UPDATE events SET image_url = 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=800' WHERE title = 'Yoga in the Park';
+UPDATE events SET image_url = 'https://images.unsplash.com/photo-1600965962102-9d260a71890d?w=800' WHERE title = 'Swimming Competition';
+UPDATE events SET image_url = 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800' WHERE title = 'Street Food Market';
+UPDATE events SET image_url = 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800' WHERE title = 'Rock Concert: Local Bands';
+UPDATE events SET image_url = 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=800' WHERE title = 'Wine Tasting Evening';
+UPDATE events SET image_url = 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=800' WHERE title = 'Football Match: Dinamo Tbilisi vs Torpedo Kutaisi';
+UPDATE events SET image_url = 'https://images.unsplash.com/photo-1519861531473-9200262188bf?w=800' WHERE title = 'Basketball Tournament Finals';
+UPDATE events SET image_url = 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800' WHERE title = 'Electronic Music Festival';
+UPDATE events SET image_url = 'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=800' WHERE title = 'Tennis Open Championship';
+UPDATE events SET image_url = 'https://images.unsplash.com/photo-1507676184212-d03ab07a01bf?w=800' WHERE title = 'Theater Play: Georgian Classics';
+UPDATE events SET image_url = 'https://images.unsplash.com/photo-1517649763962-0c623066013b?w=800' WHERE title = 'Extreme Sports Festival';
+UPDATE events SET image_url = 'https://images.unsplash.com/photo-1571266028243-d220c6f2f5e5?w=800' WHERE title = 'Techno Underground at Tes Club';
+UPDATE events SET image_url = 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=800' WHERE title = 'Electronic Music Marathon at Khidi';
+UPDATE events SET image_url = 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800' WHERE title = 'Late Night Vibes at Mtkvarze';
+UPDATE events SET image_url = 'https://images.unsplash.com/photo-1547595628-c61a29f496f0?w=800' WHERE title = 'Georgian Wine Tasting Experience';
+UPDATE events SET image_url = 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800' WHERE title = 'Yoga on the Mtatsminda';
+UPDATE events SET image_url = 'https://images.unsplash.com/photo-1511192336575-5a79af67a629?w=800' WHERE title = 'Mtkvarze: Riverside Party';
+UPDATE events SET image_url = 'https://images.unsplash.com/photo-1415201364774-f6f0bb35f28f?w=800' WHERE title = 'Live Jazz at Dive Bar';
+UPDATE events SET image_url = 'https://images.unsplash.com/photo-1511735111819-9a3f7709049c?w=800' WHERE title = 'Cafe Gallery: Indie Music Night';
+UPDATE events SET image_url = 'https://images.unsplash.com/photo-1571266028243-d220c6f2f5e5?w=800' WHERE title = 'Khidi: Underground Electronic Session';
+UPDATE events SET image_url = 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=800' WHERE title = 'Fabrika: Rooftop Cinema Under Stars';
+UPDATE events SET image_url = 'https://images.unsplash.com/photo-1544148103-0773bf10d330?w=800' WHERE title = 'Traditional Georgian Supra Feast';
+UPDATE events SET image_url = 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=800' WHERE title = 'Tbilisi Street Food Festival';
