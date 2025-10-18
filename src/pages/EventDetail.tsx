@@ -19,7 +19,6 @@ const EventDetail = () => {
   const [user, setUser] = useState<any>(null);
   const [rsvps, setRsvps] = useState<any[]>([]);
   const [isGoing, setIsGoing] = useState(false);
-  const [showMap, setShowMap] = useState(false);
 
   useEffect(() => {
     checkAuth();
@@ -296,14 +295,41 @@ const EventDetail = () => {
                 </div>
               )}
 
+              <div className="space-y-3">
+                <div className="h-[300px] w-full rounded-2xl overflow-hidden border border-border">
+                  <TbilisiMap 
+                    highlightEvent={{ 
+                      lat: event.location_lat, 
+                      lng: event.location_lng 
+                    }} 
+                  />
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-4">
                 <Button 
                   className="gap-2" 
                   size="lg"
-                  onClick={() => setShowMap(!showMap)}
+                  onClick={() => {
+                    if (navigator.geolocation) {
+                      navigator.geolocation.getCurrentPosition(
+                        (position) => {
+                          const origin = `${position.coords.latitude},${position.coords.longitude}`;
+                          const destination = `${event.location_lat},${event.location_lng}`;
+                          window.open(`https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}`, '_blank', 'noopener,noreferrer');
+                        },
+                        () => {
+                          // Fallback if location access denied
+                          window.open(`https://www.google.com/maps/dir/?api=1&destination=${event.location_lat},${event.location_lng}`, '_blank', 'noopener,noreferrer');
+                        }
+                      );
+                    } else {
+                      window.open(`https://www.google.com/maps/dir/?api=1&destination=${event.location_lat},${event.location_lng}`, '_blank', 'noopener,noreferrer');
+                    }
+                  }}
                 >
                   <Navigation className="w-4 h-4" />
-                  {showMap ? "Hide" : "Show"} Directions
+                  Get Directions
                 </Button>
                 <Button 
                   variant={isGoing ? "outline" : "default"}
@@ -324,17 +350,6 @@ const EventDetail = () => {
                   {attending ? "Checking in..." : "Check In & Earn Credits"}
                 </Button>
               </div>
-
-              {showMap && (
-                <div className="h-[400px] w-full rounded-2xl overflow-hidden border border-border">
-                  <TbilisiMap 
-                    showDirectionsTo={{ 
-                      lat: event.location_lat, 
-                      lng: event.location_lng 
-                    }} 
-                  />
-                </div>
-              )}
             </div>
           </div>
         </div>
