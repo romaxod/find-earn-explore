@@ -111,11 +111,7 @@ const TbilisiMap = ({ highlightEvent }: TbilisiMapProps = {}) => {
                       <span>${new Date(event.time).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</span>
                     </div>
                     <div class="flex items-center gap-1 font-semibold" style="color: hsl(160 85% 45%);">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="12" y1="1" x2="12" y2="23"/>
-                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-                      </svg>
-                       <span>${event.price} ₾</span>
+                      <span>${event.price} ₾</span>
                     </div>
                   </div>
                   <button 
