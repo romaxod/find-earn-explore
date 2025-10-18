@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import type { LatLngExpression } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { supabase } from "@/integrations/supabase/client";
@@ -50,7 +51,7 @@ const userIcon = new L.Icon({
   shadowSize: [41, 41]
 });
 
-function MapController({ center, zoom }: { center?: [number, number]; zoom?: number }) {
+function MapController({ center, zoom }: { center?: LatLngExpression; zoom?: number }) {
   const map = useMap();
   
   useEffect(() => {
@@ -66,9 +67,9 @@ const TbilisiMap = ({ highlightEvent }: TbilisiMapProps = {}) => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [events, setEvents] = useState<Event[]>([]);
-  const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
-  const [mapCenter, setMapCenter] = useState<[number, number]>([41.7151, 44.8271]);
-  const [mapZoom, setMapZoom] = useState<number>(12);
+  const [userLocation, setUserLocation] = useState<LatLngExpression | null>(null);
+  const [flyToCenter, setFlyToCenter] = useState<LatLngExpression | undefined>();
+  const [flyToZoom, setFlyToZoom] = useState<number | undefined>();
 
   useEffect(() => {
     fetchEvents();
@@ -77,8 +78,8 @@ const TbilisiMap = ({ highlightEvent }: TbilisiMapProps = {}) => {
 
   useEffect(() => {
     if (highlightEvent) {
-      setMapCenter([highlightEvent.lat, highlightEvent.lng]);
-      setMapZoom(15);
+      setFlyToCenter([highlightEvent.lat, highlightEvent.lng]);
+      setFlyToZoom(15);
     }
   }, [highlightEvent]);
 
@@ -123,7 +124,8 @@ const TbilisiMap = ({ highlightEvent }: TbilisiMapProps = {}) => {
 
   const getDirections = (eventLat: number, eventLng: number) => {
     if (userLocation) {
-      const url = `https://www.google.com/maps/dir/?api=1&origin=${userLocation[0]},${userLocation[1]}&destination=${eventLat},${eventLng}&travelmode=walking`;
+      const loc = userLocation as [number, number];
+      const url = `https://www.google.com/maps/dir/?api=1&origin=${loc[0]},${loc[1]}&destination=${eventLat},${eventLng}&travelmode=walking`;
       window.open(url, '_blank');
     } else {
       toast({
@@ -134,69 +136,69 @@ const TbilisiMap = ({ highlightEvent }: TbilisiMapProps = {}) => {
     }
   };
 
-  const mapContainerProps: any = {
-    center: mapCenter,
-    zoom: mapZoom,
-    style: { height: '100%', width: '100%' },
-    className: "z-0"
-  };
-
-  const tileLayerProps: any = {
-    url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-  };
+  const defaultCenter: LatLngExpression = [41.7151, 44.8271];
 
   return (
     <div className="relative w-full h-full rounded-lg overflow-hidden">
-      <MapContainer {...mapContainerProps}>
-        <TileLayer {...tileLayerProps} />
+      <MapContainer
+        center={defaultCenter}
+        zoom={12}
+        style={{ height: '100%', width: '100%' }}
+        className="z-0"
+      >
+        <TileLayer
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        />
         
-        <MapController center={mapCenter} zoom={mapZoom} />
+        <MapController center={flyToCenter} zoom={flyToZoom} />
 
         {userLocation && (
-          <Marker 
-            {...({ position: userLocation, icon: userIcon } as any)}
-          >
+          <Marker position={userLocation} icon={userIcon}>
             <Popup>
               <div className="text-sm font-medium">Your Location</div>
             </Popup>
           </Marker>
         )}
 
-        {events.map((event) => (
-          <Marker
-            key={event.id}
-            {...({ position: [event.location_lat, event.location_lng], icon: eventIcon } as any)}
-          >
-            <Popup>
-              <div className="p-2 min-w-[200px]">
-                <h3 className="font-bold text-base mb-1 text-gray-900">{event.title}</h3>
-                <p className="text-xs text-gray-600 mb-2">{event.category}</p>
-                <p className="text-xs mb-2 text-gray-700">{event.location_name}</p>
-                <p className="text-xs mb-2 text-gray-700">
-                  {new Date(event.time).toLocaleDateString()}
-                </p>
-                <div className="flex gap-2 mt-3">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => getDirections(event.location_lat, event.location_lng)}
-                    className="flex-1 text-xs"
-                  >
-                    Directions
-                  </Button>
-                  <Button
-                    size="sm"
-                    onClick={() => navigate(`/event/${event.id}`)}
-                    className="flex-1 text-xs"
-                  >
-                    View Details
-                  </Button>
+        {events.map((event) => {
+          const eventPosition: LatLngExpression = [event.location_lat, event.location_lng];
+          return (
+            <Marker
+              key={event.id}
+              position={eventPosition}
+              icon={eventIcon}
+            >
+              <Popup>
+                <div className="p-2 min-w-[200px]">
+                  <h3 className="font-bold text-base mb-1 text-gray-900">{event.title}</h3>
+                  <p className="text-xs text-gray-600 mb-2">{event.category}</p>
+                  <p className="text-xs mb-2 text-gray-700">{event.location_name}</p>
+                  <p className="text-xs mb-2 text-gray-700">
+                    {new Date(event.time).toLocaleDateString()}
+                  </p>
+                  <div className="flex gap-2 mt-3">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => getDirections(event.location_lat, event.location_lng)}
+                      className="flex-1 text-xs"
+                    >
+                      Directions
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={() => navigate(`/event/${event.id}`)}
+                      className="flex-1 text-xs"
+                    >
+                      View Details
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            </Popup>
-          </Marker>
-        ))}
+              </Popup>
+            </Marker>
+          );
+        })}
       </MapContainer>
     </div>
   );
