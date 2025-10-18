@@ -1,54 +1,163 @@
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Coins, Sparkles, Zap, Crown } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Utensils, Coffee, Wine, Percent, MapPin } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { useState } from "react";
 
 const CreditShop = () => {
-  const packages = [
+  const [userCredits, setUserCredits] = useState(150);
+
+  const deals = [
     {
       id: 1,
-      name: "Starter Pack",
-      credits: 100,
-      price: 9.99,
-      icon: Coins,
-      popular: false,
-      discount: "Perfect for beginners"
+      company: "McDonald's",
+      offer: "Free Big Mac with any purchase",
+      credits: 20,
+      category: "Fast Food",
+      icon: Utensils,
+      location: "Multiple locations",
+      image: "🍔",
+      color: "text-red-500"
     },
     {
       id: 2,
-      name: "Explorer Pack",
-      credits: 300,
-      price: 24.99,
-      icon: Sparkles,
-      popular: true,
-      discount: "Save 15% - Most Popular"
+      company: "KFC",
+      offer: "30% off on bucket meals",
+      credits: 15,
+      category: "Fast Food",
+      icon: Utensils,
+      location: "Multiple locations",
+      image: "🍗",
+      color: "text-red-600"
     },
     {
       id: 3,
-      name: "Adventure Pack",
-      credits: 600,
-      price: 44.99,
-      icon: Zap,
-      popular: false,
-      discount: "Save 25%"
+      company: "Café Littera",
+      offer: "Complimentary dessert with main course",
+      credits: 25,
+      category: "Fine Dining",
+      icon: Coffee,
+      location: "13 Machabeli St, Tbilisi",
+      image: "🍰",
+      color: "text-amber-600"
     },
     {
       id: 4,
-      name: "Premium Pack",
-      credits: 1200,
-      price: 79.99,
-      icon: Crown,
-      popular: false,
-      discount: "Save 35% - Best Value"
+      company: "Shavi Lomi",
+      offer: "20% off total bill",
+      credits: 30,
+      category: "Georgian Cuisine",
+      icon: Utensils,
+      location: "14 Marjanishvili St, Tbilisi",
+      image: "🍖",
+      color: "text-orange-500"
+    },
+    {
+      id: 5,
+      company: "Fabrika",
+      offer: "Buy 2 cocktails, get 1 free",
+      credits: 25,
+      category: "Bar & Lounge",
+      icon: Wine,
+      location: "8 Egnate Ninoshvili St, Tbilisi",
+      image: "🍸",
+      color: "text-purple-500"
+    },
+    {
+      id: 6,
+      company: "Stamba Hotel Bar",
+      offer: "50% off craft cocktails",
+      credits: 35,
+      category: "Premium Bar",
+      icon: Wine,
+      location: "14 Merab Kostava St, Tbilisi",
+      image: "🍹",
+      color: "text-pink-500"
+    },
+    {
+      id: 7,
+      company: "Culinarium",
+      offer: "Free appetizer for groups of 4+",
+      credits: 40,
+      category: "Restaurant",
+      icon: Utensils,
+      location: "31 Shavteli St, Tbilisi",
+      image: "🥗",
+      color: "text-green-500"
+    },
+    {
+      id: 8,
+      company: "Café Leila",
+      offer: "2 for 1 on specialty coffee",
+      credits: 10,
+      category: "Coffee Shop",
+      icon: Coffee,
+      location: "7 Ioseb Grishashvili St, Tbilisi",
+      image: "☕",
+      color: "text-brown-500"
+    },
+    {
+      id: 9,
+      company: "Berbarestan",
+      offer: "Complimentary wine tasting",
+      credits: 45,
+      category: "Georgian Fine Dining",
+      icon: Wine,
+      location: "132 Rustaveli Ave, Tbilisi",
+      image: "🍷",
+      color: "text-red-700"
+    },
+    {
+      id: 10,
+      company: "Rooms Hotel Bar",
+      offer: "Free starter with any order",
+      credits: 30,
+      category: "Hotel Bar",
+      icon: Wine,
+      location: "14 Merab Kostava St, Tbilisi",
+      image: "🥂",
+      color: "text-blue-500"
+    },
+    {
+      id: 11,
+      company: "Dunkin' Donuts",
+      offer: "Buy 6 donuts, get 3 free",
+      credits: 12,
+      category: "Coffee & Donuts",
+      icon: Coffee,
+      location: "Multiple locations",
+      image: "🍩",
+      color: "text-pink-400"
+    },
+    {
+      id: 12,
+      company: "Respublika Grill Bar",
+      offer: "15% off entire menu",
+      credits: 20,
+      category: "Grill & Bar",
+      icon: Utensils,
+      location: "Kote Abkhazi St, Tbilisi",
+      image: "🔥",
+      color: "text-orange-600"
     }
   ];
 
-  const handlePurchase = (packageName: string, credits: number) => {
-    toast({
-      title: "Purchase Successful!",
-      description: `You've purchased ${credits} credits from the ${packageName}.`,
-    });
+  const handleRedeem = (deal: typeof deals[0]) => {
+    if (userCredits >= deal.credits) {
+      setUserCredits(userCredits - deal.credits);
+      toast({
+        title: "Deal Redeemed!",
+        description: `You've redeemed ${deal.offer} at ${deal.company}. Show this to the staff.`,
+      });
+    } else {
+      toast({
+        title: "Insufficient Credits",
+        description: `You need ${deal.credits} credits but only have ${userCredits}.`,
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -56,61 +165,68 @@ const CreditShop = () => {
       <Navbar />
       
       <main className="pt-24 pb-16 px-4">
-        <div className="container max-w-6xl mx-auto">
-          <div className="text-center mb-12 space-y-4">
+        <div className="container max-w-7xl mx-auto">
+          <div className="text-center mb-8 space-y-4">
             <h1 className="text-4xl md:text-5xl font-bold">
-              Credit Shop
+              Exclusive Deals & Discounts
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Purchase credits to unlock exclusive discounts and rewards at your favorite venues
+              Redeem credits for amazing offers from top restaurants, cafes, and bars in Tbilisi
             </p>
+            
+            <Card className="max-w-md mx-auto bg-primary/10 border-primary/20">
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Your Credits</p>
+                    <p className="text-3xl font-bold text-primary">{userCredits}</p>
+                  </div>
+                  <Button variant="outline">
+                    Buy More
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {packages.map((pkg) => {
-              const Icon = pkg.icon;
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {deals.map((deal) => {
+              const Icon = deal.icon;
               return (
                 <Card 
-                  key={pkg.id} 
-                  className={`relative transition-smooth hover:shadow-card ${
-                    pkg.popular ? 'border-primary shadow-card' : ''
-                  }`}
+                  key={deal.id} 
+                  className="hover:shadow-lg transition-shadow"
                 >
-                  {pkg.popular && (
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                      <span className="px-4 py-1 bg-primary text-primary-foreground text-sm font-semibold rounded-full shadow-glow">
-                        Most Popular
-                      </span>
+                  <CardHeader>
+                    <div className="flex items-start justify-between">
+                      <div className="text-4xl mb-2">{deal.image}</div>
+                      <Badge variant="secondary" className="flex items-center gap-1">
+                        <Percent className="w-3 h-3" />
+                        {deal.credits} credits
+                      </Badge>
                     </div>
-                  )}
-                  
-                  <CardHeader className="text-center">
-                    <div className="w-16 h-16 mx-auto mb-4 rounded-full gradient-hero flex items-center justify-center">
-                      <Icon className="w-8 h-8 text-primary-foreground" />
-                    </div>
-                    <CardTitle className="text-2xl">{pkg.name}</CardTitle>
-                    <CardDescription className="text-primary font-semibold">
-                      {pkg.discount}
+                    <CardTitle className="text-xl">{deal.company}</CardTitle>
+                    <CardDescription className="flex items-center gap-1 text-sm">
+                      <Icon className={`w-4 h-4 ${deal.color}`} />
+                      {deal.category}
                     </CardDescription>
                   </CardHeader>
-                  
-                  <CardContent className="text-center space-y-4">
-                    <div className="text-4xl font-bold">
-                      {pkg.credits}
-                      <span className="text-lg text-muted-foreground ml-1">credits</span>
+                  <CardContent className="space-y-3">
+                    <div className="bg-primary/10 p-3 rounded-lg">
+                      <p className="font-semibold text-primary">{deal.offer}</p>
                     </div>
-                    <div className="text-3xl font-bold text-primary">
-                      ${pkg.price}
+                    <div className="flex items-start gap-2 text-sm text-muted-foreground">
+                      <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                      <span>{deal.location}</span>
                     </div>
                   </CardContent>
-                  
                   <CardFooter>
                     <Button 
-                      className="w-full"
-                      variant={pkg.popular ? "hero" : "default"}
-                      onClick={() => handlePurchase(pkg.name, pkg.credits)}
+                      className="w-full" 
+                      onClick={() => handleRedeem(deal)}
+                      disabled={userCredits < deal.credits}
                     >
-                      Purchase Now
+                      {userCredits >= deal.credits ? 'Redeem Now' : 'Not Enough Credits'}
                     </Button>
                   </CardFooter>
                 </Card>
@@ -118,37 +234,35 @@ const CreditShop = () => {
             })}
           </div>
 
-          <div className="mt-16 text-center space-y-4">
-            <h3 className="text-2xl font-bold">How Credits Work</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-              <div className="p-6 rounded-lg border border-border bg-card">
-                <div className="w-12 h-12 mx-auto mb-4 rounded-full gradient-accent flex items-center justify-center">
-                  <Coins className="w-6 h-6 text-primary-foreground" />
+          <div className="mt-16">
+            <Card className="max-w-3xl mx-auto">
+              <CardHeader>
+                <CardTitle>How to Use Your Deals</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex gap-3">
+                  <div className="bg-primary text-primary-foreground w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0">1</div>
+                  <div>
+                    <p className="font-semibold">Browse & Select</p>
+                    <p className="text-sm text-muted-foreground">Choose your favorite deal from the collection above</p>
+                  </div>
                 </div>
-                <h4 className="font-semibold mb-2">Earn Credits</h4>
-                <p className="text-sm text-muted-foreground">
-                  Purchase credits here or earn them by checking in at events
-                </p>
-              </div>
-              <div className="p-6 rounded-lg border border-border bg-card">
-                <div className="w-12 h-12 mx-auto mb-4 rounded-full gradient-accent flex items-center justify-center">
-                  <Sparkles className="w-6 h-6 text-primary-foreground" />
+                <div className="flex gap-3">
+                  <div className="bg-primary text-primary-foreground w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0">2</div>
+                  <div>
+                    <p className="font-semibold">Redeem with Credits</p>
+                    <p className="text-sm text-muted-foreground">Click redeem and use your credits to unlock the offer</p>
+                  </div>
                 </div>
-                <h4 className="font-semibold mb-2">Unlock Rewards</h4>
-                <p className="text-sm text-muted-foreground">
-                  Use credits to unlock exclusive discounts and special offers
-                </p>
-              </div>
-              <div className="p-6 rounded-lg border border-border bg-card">
-                <div className="w-12 h-12 mx-auto mb-4 rounded-full gradient-accent flex items-center justify-center">
-                  <Zap className="w-6 h-6 text-primary-foreground" />
+                <div className="flex gap-3">
+                  <div className="bg-primary text-primary-foreground w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0">3</div>
+                  <div>
+                    <p className="font-semibold">Show & Enjoy</p>
+                    <p className="text-sm text-muted-foreground">Present the redeemed offer to staff at the location and enjoy!</p>
+                  </div>
                 </div>
-                <h4 className="font-semibold mb-2">Save Money</h4>
-                <p className="text-sm text-muted-foreground">
-                  The more you explore, the more you save on future experiences
-                </p>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </main>
