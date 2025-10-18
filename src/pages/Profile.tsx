@@ -62,48 +62,22 @@ const Profile = () => {
         .from('profiles')
         .select('*')
         .eq('id', userId)
-        .maybeSingle();
+        .single();
       
       if (error) throw error;
       
-      // If no profile exists, create one
-      if (!data) {
-        const { data: { user } } = await supabase.auth.getUser();
-        const newProfile = {
-          id: userId,
-          name: user?.email?.split('@')[0] || 'User',
-          email: user?.email || '',
-          credits: 0,
-          hobbies: [],
-        };
-        
-        const { error: insertError } = await supabase
-          .from('profiles')
-          .insert(newProfile);
-        
-        if (insertError) throw insertError;
-        
-        setProfile(newProfile);
-        setName(newProfile.name);
-        setAge("");
-        setGender("");
-        setHobbies([]);
-      } else {
-        setProfile(data);
-        setName(data.name || "");
-        setAge(data.age?.toString() || "");
-        setGender(data.gender || "");
-        setHobbies(data.hobbies || []);
-      }
+      setProfile(data);
+      setName(data.name || "");
+      setAge(data.age?.toString() || "");
+      setGender(data.gender || "");
+      setHobbies(data.hobbies || []);
     } catch (error) {
       console.error('Error fetching profile:', error);
       toast({
         title: "Error",
-        description: "Failed to load profile. Please refresh the page.",
+        description: "Failed to load profile",
         variant: "destructive",
       });
-      // Set loading to false even on error so page doesn't stay blank
-      setLoading(false);
     } finally {
       setLoading(false);
     }

@@ -4,7 +4,6 @@ import { MapPin, Sparkles, User, Coins, LogOut, Compass, UserCircle } from "luci
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { FriendRequestNotifications } from "@/components/FriendRequestNotifications";
 
 export const Navbar = () => {
   const navigate = useNavigate();
@@ -99,7 +98,6 @@ export const Navbar = () => {
             
             {user ? (
               <>
-                <FriendRequestNotifications />
                 <Link to="/profile">
                   <Button 
                     variant={location.pathname === "/profile" ? "default" : "ghost"} 
