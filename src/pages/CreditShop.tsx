@@ -2,159 +2,126 @@ import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Utensils, Coffee, Wine, Percent, MapPin } from "lucide-react";
+import { Music, Dumbbell, Palette, PartyPopper, Calendar, Sparkles } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useState } from "react";
 
 const CreditShop = () => {
   const [userCredits, setUserCredits] = useState(150);
 
-  const deals = [
+  const discountPackages = [
     {
       id: 1,
-      company: "McDonald's",
-      offer: "Free Big Mac with any purchase",
-      credits: 20,
-      category: "Fast Food",
-      icon: Utensils,
-      location: "Multiple locations",
-      image: "🍔",
-      color: "text-red-500"
+      name: "Nightclub Elite Pass",
+      discount: "25% off",
+      duration: "1 Month",
+      credits: 150,
+      category: "Nightclub Events",
+      icon: PartyPopper,
+      description: "Get 25% discount on all nightclub events for an entire month",
+      gradient: "from-purple-500/20 to-pink-500/20"
     },
     {
       id: 2,
-      company: "KFC",
-      offer: "30% off on bucket meals",
-      credits: 15,
-      category: "Fast Food",
-      icon: Utensils,
-      location: "Multiple locations",
-      image: "🍗",
-      color: "text-red-600"
+      name: "Sports Enthusiast",
+      discount: "20% off",
+      duration: "1 Month",
+      credits: 120,
+      category: "Sports Events",
+      icon: Dumbbell,
+      description: "Enjoy 20% off on all sports events and activities",
+      gradient: "from-blue-500/20 to-cyan-500/20"
     },
     {
       id: 3,
-      company: "Café Littera",
-      offer: "Complimentary dessert with main course",
-      credits: 25,
-      category: "Fine Dining",
-      icon: Coffee,
-      location: "13 Machabeli St, Tbilisi",
-      image: "🍰",
-      color: "text-amber-600"
+      name: "Concert VIP",
+      discount: "30% off",
+      duration: "2 Weeks",
+      credits: 100,
+      category: "Concert Events",
+      icon: Music,
+      description: "Premium 30% discount on concert tickets for 2 weeks",
+      gradient: "from-red-500/20 to-orange-500/20"
     },
     {
       id: 4,
-      company: "Shavi Lomi",
-      offer: "20% off total bill",
-      credits: 30,
-      category: "Georgian Cuisine",
-      icon: Utensils,
-      location: "14 Marjanishvili St, Tbilisi",
-      image: "🍖",
-      color: "text-orange-500"
+      name: "Culture Connoisseur",
+      discount: "25% off",
+      duration: "3 Months",
+      credits: 200,
+      category: "Cultural Events",
+      icon: Palette,
+      description: "Long-term 25% savings on museums, galleries, and cultural experiences",
+      gradient: "from-emerald-500/20 to-teal-500/20"
     },
     {
       id: 5,
-      company: "Fabrika",
-      offer: "Buy 2 cocktails, get 1 free",
-      credits: 25,
-      category: "Bar & Lounge",
-      icon: Wine,
-      location: "8 Egnate Ninoshvili St, Tbilisi",
-      image: "🍸",
-      color: "text-purple-500"
+      name: "Nightlife Starter",
+      discount: "15% off",
+      duration: "2 Weeks",
+      credits: 75,
+      category: "Nightclub Events",
+      icon: PartyPopper,
+      description: "Start your nightlife journey with 15% off for 2 weeks",
+      gradient: "from-purple-500/20 to-pink-500/20"
     },
     {
       id: 6,
-      company: "Stamba Hotel Bar",
-      offer: "50% off craft cocktails",
-      credits: 35,
-      category: "Premium Bar",
-      icon: Wine,
-      location: "14 Merab Kostava St, Tbilisi",
-      image: "🍹",
-      color: "text-pink-500"
+      name: "Sports Weekend",
+      discount: "10% off",
+      duration: "1 Week",
+      credits: 50,
+      category: "Sports Events",
+      icon: Dumbbell,
+      description: "Quick weekend boost with 10% off sports events",
+      gradient: "from-blue-500/20 to-cyan-500/20"
     },
     {
       id: 7,
-      company: "Culinarium",
-      offer: "Free appetizer for groups of 4+",
-      credits: 40,
-      category: "Restaurant",
-      icon: Utensils,
-      location: "31 Shavteli St, Tbilisi",
-      image: "🥗",
-      color: "text-green-500"
+      name: "Music Master",
+      discount: "25% off",
+      duration: "1 Month",
+      credits: 140,
+      category: "Concert Events",
+      icon: Music,
+      description: "Full month access to 25% discounts on all concerts",
+      gradient: "from-red-500/20 to-orange-500/20"
     },
     {
       id: 8,
-      company: "Café Leila",
-      offer: "2 for 1 on specialty coffee",
-      credits: 10,
-      category: "Coffee Shop",
-      icon: Coffee,
-      location: "7 Ioseb Grishashvili St, Tbilisi",
-      image: "☕",
-      color: "text-brown-500"
+      name: "Event Explorer",
+      discount: "20% off",
+      duration: "1 Month",
+      credits: 130,
+      category: "All Events",
+      icon: Calendar,
+      description: "Universal 20% discount across all event categories",
+      gradient: "from-amber-500/20 to-yellow-500/20"
     },
     {
       id: 9,
-      company: "Berbarestan",
-      offer: "Complimentary wine tasting",
-      credits: 45,
-      category: "Georgian Fine Dining",
-      icon: Wine,
-      location: "132 Rustaveli Ave, Tbilisi",
-      image: "🍷",
-      color: "text-red-700"
-    },
-    {
-      id: 10,
-      company: "Rooms Hotel Bar",
-      offer: "Free starter with any order",
-      credits: 30,
-      category: "Hotel Bar",
-      icon: Wine,
-      location: "14 Merab Kostava St, Tbilisi",
-      image: "🥂",
-      color: "text-blue-500"
-    },
-    {
-      id: 11,
-      company: "Dunkin' Donuts",
-      offer: "Buy 6 donuts, get 3 free",
-      credits: 12,
-      category: "Coffee & Donuts",
-      icon: Coffee,
-      location: "Multiple locations",
-      image: "🍩",
-      color: "text-pink-400"
-    },
-    {
-      id: 12,
-      company: "Respublika Grill Bar",
-      offer: "15% off entire menu",
-      credits: 20,
-      category: "Grill & Bar",
-      icon: Utensils,
-      location: "Kote Abkhazi St, Tbilisi",
-      image: "🔥",
-      color: "text-orange-600"
+      name: "Premium All-Access",
+      discount: "30% off",
+      duration: "3 Months",
+      credits: 350,
+      category: "All Events",
+      icon: Sparkles,
+      description: "Ultimate premium package: 30% off everything for 3 months",
+      gradient: "from-violet-500/20 to-fuchsia-500/20"
     }
   ];
 
-  const handleRedeem = (deal: typeof deals[0]) => {
-    if (userCredits >= deal.credits) {
-      setUserCredits(userCredits - deal.credits);
+  const handlePurchase = (pkg: typeof discountPackages[0]) => {
+    if (userCredits >= pkg.credits) {
+      setUserCredits(userCredits - pkg.credits);
       toast({
-        title: "Deal Redeemed!",
-        description: `You've redeemed ${deal.offer} at ${deal.company}. Show this to the staff.`,
+        title: "Discount Package Activated!",
+        description: `${pkg.name}: ${pkg.discount} on ${pkg.category} for ${pkg.duration}`,
       });
     } else {
       toast({
         title: "Insufficient Credits",
-        description: `You need ${deal.credits} credits but only have ${userCredits}.`,
+        description: `You need ${pkg.credits} credits but only have ${userCredits}.`,
         variant: "destructive",
       });
     }
@@ -166,67 +133,79 @@ const CreditShop = () => {
       
       <main className="pt-24 pb-16 px-4">
         <div className="container max-w-7xl mx-auto">
-          <div className="text-center mb-8 space-y-4">
-            <h1 className="text-4xl md:text-5xl font-bold">
-              Exclusive Deals & Discounts
-            </h1>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Redeem credits for amazing offers from top restaurants, cafes, and bars in Tbilisi
-            </p>
+          <div className="text-center mb-12 space-y-6">
+            <div className="space-y-4">
+              <h1 className="text-5xl md:text-6xl font-bold gradient-hero-text">
+                Premium Discount Packages
+              </h1>
+              <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+                Unlock exclusive discounts on your favorite event categories with our premium credit packages
+              </p>
+            </div>
             
-            <Card className="max-w-md mx-auto bg-primary/10 border-primary/20">
-              <CardContent className="pt-6">
+            <Card className="max-w-lg mx-auto gradient-card border-primary/20 shadow-glow">
+              <CardContent className="pt-8 pb-8">
                 <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Your Credits</p>
-                    <p className="text-3xl font-bold text-primary">{userCredits}</p>
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground uppercase tracking-wider">Available Credits</p>
+                    <p className="text-5xl font-bold gradient-hero-text">{userCredits}</p>
                   </div>
-                  <Button variant="outline">
-                    Buy More
+                  <Button className="gradient-hero border-0 shadow-glow transition-smooth hover:scale-105">
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    Purchase More
                   </Button>
                 </div>
               </CardContent>
             </Card>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {deals.map((deal) => {
-              const Icon = deal.icon;
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {discountPackages.map((pkg) => {
+              const Icon = pkg.icon;
+              const canAfford = userCredits >= pkg.credits;
               return (
                 <Card 
-                  key={deal.id} 
-                  className="hover:shadow-lg transition-shadow"
+                  key={pkg.id} 
+                  className={`gradient-card border-primary/20 hover:shadow-glow transition-smooth hover:scale-[1.02] ${!canAfford && 'opacity-60'}`}
                 >
-                  <CardHeader>
+                  <CardHeader className="space-y-4">
                     <div className="flex items-start justify-between">
-                      <div className="text-4xl mb-2">{deal.image}</div>
-                      <Badge variant="secondary" className="flex items-center gap-1">
-                        <Percent className="w-3 h-3" />
-                        {deal.credits} credits
+                      <div className={`p-3 rounded-xl bg-gradient-to-br ${pkg.gradient} backdrop-blur-sm`}>
+                        <Icon className="w-8 h-8 text-primary" />
+                      </div>
+                      <Badge className="bg-primary/20 text-primary border-primary/30 text-sm px-3 py-1">
+                        {pkg.credits} credits
                       </Badge>
                     </div>
-                    <CardTitle className="text-xl">{deal.company}</CardTitle>
-                    <CardDescription className="flex items-center gap-1 text-sm">
-                      <Icon className={`w-4 h-4 ${deal.color}`} />
-                      {deal.category}
-                    </CardDescription>
+                    <div className="space-y-2">
+                      <CardTitle className="text-2xl">{pkg.name}</CardTitle>
+                      <CardDescription className="text-base text-muted-foreground">
+                        {pkg.category}
+                      </CardDescription>
+                    </div>
                   </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="bg-primary/10 p-3 rounded-lg">
-                      <p className="font-semibold text-primary">{deal.offer}</p>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between p-4 rounded-lg bg-primary/10 border border-primary/20">
+                        <span className="text-sm font-medium text-muted-foreground">Discount</span>
+                        <span className="text-2xl font-bold text-primary">{pkg.discount}</span>
+                      </div>
+                      <div className="flex items-center justify-between p-4 rounded-lg bg-secondary/10 border border-secondary/20">
+                        <span className="text-sm font-medium text-muted-foreground">Duration</span>
+                        <span className="text-lg font-semibold text-secondary">{pkg.duration}</span>
+                      </div>
                     </div>
-                    <div className="flex items-start gap-2 text-sm text-muted-foreground">
-                      <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                      <span>{deal.location}</span>
-                    </div>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      {pkg.description}
+                    </p>
                   </CardContent>
                   <CardFooter>
                     <Button 
-                      className="w-full" 
-                      onClick={() => handleRedeem(deal)}
-                      disabled={userCredits < deal.credits}
+                      className="w-full gradient-hero border-0 shadow-glow transition-smooth hover:scale-105 disabled:opacity-50 disabled:hover:scale-100" 
+                      onClick={() => handlePurchase(pkg)}
+                      disabled={!canAfford}
                     >
-                      {userCredits >= deal.credits ? 'Redeem Now' : 'Not Enough Credits'}
+                      {canAfford ? 'Activate Package' : 'Insufficient Credits'}
                     </Button>
                   </CardFooter>
                 </Card>
@@ -234,31 +213,32 @@ const CreditShop = () => {
             })}
           </div>
 
-          <div className="mt-16">
-            <Card className="max-w-3xl mx-auto">
-              <CardHeader>
-                <CardTitle>How to Use Your Deals</CardTitle>
+          <div className="mt-20">
+            <Card className="max-w-4xl mx-auto gradient-card border-primary/20 shadow-glow">
+              <CardHeader className="text-center pb-8">
+                <CardTitle className="text-3xl mb-2">How Discount Packages Work</CardTitle>
+                <CardDescription className="text-base">Simple steps to unlock premium savings</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex gap-3">
-                  <div className="bg-primary text-primary-foreground w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0">1</div>
-                  <div>
-                    <p className="font-semibold">Browse & Select</p>
-                    <p className="text-sm text-muted-foreground">Choose your favorite deal from the collection above</p>
+              <CardContent className="space-y-6">
+                <div className="flex gap-4 items-start">
+                  <div className="gradient-hero text-primary-foreground w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 shadow-glow text-lg font-bold">1</div>
+                  <div className="space-y-1 pt-1">
+                    <p className="font-semibold text-lg">Select Your Package</p>
+                    <p className="text-muted-foreground leading-relaxed">Browse our premium discount packages and choose the one that matches your lifestyle</p>
                   </div>
                 </div>
-                <div className="flex gap-3">
-                  <div className="bg-primary text-primary-foreground w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0">2</div>
-                  <div>
-                    <p className="font-semibold">Redeem with Credits</p>
-                    <p className="text-sm text-muted-foreground">Click redeem and use your credits to unlock the offer</p>
+                <div className="flex gap-4 items-start">
+                  <div className="gradient-hero text-primary-foreground w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 shadow-glow text-lg font-bold">2</div>
+                  <div className="space-y-1 pt-1">
+                    <p className="font-semibold text-lg">Activate with Credits</p>
+                    <p className="text-muted-foreground leading-relaxed">Use your credits to activate the package instantly and unlock exclusive discounts</p>
                   </div>
                 </div>
-                <div className="flex gap-3">
-                  <div className="bg-primary text-primary-foreground w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0">3</div>
-                  <div>
-                    <p className="font-semibold">Show & Enjoy</p>
-                    <p className="text-sm text-muted-foreground">Present the redeemed offer to staff at the location and enjoy!</p>
+                <div className="flex gap-4 items-start">
+                  <div className="gradient-hero text-primary-foreground w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 shadow-glow text-lg font-bold">3</div>
+                  <div className="space-y-1 pt-1">
+                    <p className="font-semibold text-lg">Enjoy Your Benefits</p>
+                    <p className="text-muted-foreground leading-relaxed">Your discounts are automatically applied when purchasing event tickets during the active period</p>
                   </div>
                 </div>
               </CardContent>
