@@ -1,1 +1,7 @@
 project_id = "aascombsjxaajcifcljx"
+
+[functions.get-recommendations]
+verify_jwt = true
+
+[functions.attend-event]
+verify_jwt = true

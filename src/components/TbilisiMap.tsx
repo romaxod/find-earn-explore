@@ -1,36 +1,57 @@
-import { GoogleMap, LoadScript, Marker, InfoWindow } from '@react-google-maps/api';
-import { useState } from 'react';
+import { useEffect, useState } from "react";
+import { GoogleMap, LoadScript, Marker, InfoWindow } from "@react-google-maps/api";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+
+const mapContainerStyle = {
+  width: "100%",
+  height: "100%",
+  borderRadius: "0.5rem",
+};
+
+const center = {
+  lat: 41.7151,
+  lng: 44.8271,
+};
+
+const options = {
+  disableDefaultUI: false,
+  zoomControl: true,
+  mapTypeControl: false,
+  streetViewControl: false,
+  fullscreenControl: true,
+};
 
 const TbilisiMap = () => {
-  const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
+  const { toast } = useToast();
+  const [events, setEvents] = useState<any[]>([]);
+  const [selectedEvent, setSelectedEvent] = useState<any>(null);
 
-  // Tbilisi coordinates
-  const center = {
-    lat: 41.7151,
-    lng: 44.8271
-  };
+  useEffect(() => {
+    fetchEvents();
+  }, []);
 
-  // Popular locations in Tbilisi
-  const locations = [
-    { name: 'Old Town', position: { lat: 41.6938, lng: 44.8098 } },
-    { name: 'Freedom Square', position: { lat: 41.6941, lng: 44.8083 } },
-    { name: 'Rustaveli Avenue', position: { lat: 41.6970, lng: 44.7972 } },
-    { name: 'Narikala Fortress', position: { lat: 41.6884, lng: 44.8082 } },
-    { name: 'Bridge of Peace', position: { lat: 41.6922, lng: 44.8091 } },
-  ];
-
-  const mapContainerStyle = {
-    width: '100%',
-    height: '100%',
-    borderRadius: '0.5rem'
-  };
-
-  const options = {
-    disableDefaultUI: false,
-    zoomControl: true,
-    mapTypeControl: false,
-    streetViewControl: false,
-    fullscreenControl: true,
+  const fetchEvents = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('events')
+        .select('*')
+        .gte('time', new Date().toISOString())
+        .order('time', { ascending: true });
+      
+      if (error) throw error;
+      
+      setEvents(data || []);
+    } catch (error) {
+      console.error('Error fetching events:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load events on map",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -38,25 +59,36 @@ const TbilisiMap = () => {
       <LoadScript googleMapsApiKey="AIzaSyCoD1EK5FkFxndXLUR6ceOO7OBuLo_mnAw">
         <GoogleMap
           mapContainerStyle={mapContainerStyle}
+          zoom={13}
           center={center}
-          zoom={12}
           options={options}
         >
-          {locations.map((location) => (
+          {events.map((event) => (
             <Marker
-              key={location.name}
-              position={location.position}
-              onClick={() => setSelectedLocation(location.name)}
+              key={event.id}
+              position={{ lat: event.location_lat, lng: event.location_lng }}
+              onClick={() => setSelectedEvent(event)}
+              title={event.title}
             />
           ))}
 
-          {selectedLocation && (
+          {selectedEvent && (
             <InfoWindow
-              position={locations.find(l => l.name === selectedLocation)?.position!}
-              onCloseClick={() => setSelectedLocation(null)}
+              position={{ lat: selectedEvent.location_lat, lng: selectedEvent.location_lng }}
+              onCloseClick={() => setSelectedEvent(null)}
             >
-              <div className="p-2">
-                <strong>{selectedLocation}</strong>
+              <div className="p-2 max-w-xs">
+                <h3 className="font-bold text-lg mb-1">{selectedEvent.title}</h3>
+                <p className="text-sm text-gray-600 mb-2">{selectedEvent.category}</p>
+                <p className="text-sm mb-2">{selectedEvent.location_name}</p>
+                <p className="text-sm mb-3">
+                  {new Date(selectedEvent.time).toLocaleDateString()}
+                </p>
+                <Link to={`/event/${selectedEvent.id}`}>
+                  <Button size="sm" className="w-full">
+                    View Details
+                  </Button>
+                </Link>
               </div>
             </InfoWindow>
           )}

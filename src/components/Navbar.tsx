@@ -1,8 +1,58 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { MapPin, Sparkles, User, Coins } from "lucide-react";
+import { MapPin, Sparkles, User, Coins, LogOut } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useEffect, useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 export const Navbar = () => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [user, setUser] = useState<any>(null);
+  const [credits, setCredits] = useState(0);
+
+  useEffect(() => {
+    // Check initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        fetchCredits(session.user.id);
+      }
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        fetchCredits(session.user.id);
+      } else {
+        setCredits(0);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const fetchCredits = async (userId: string) => {
+    const { data } = await supabase
+      .from('profiles')
+      .select('credits')
+      .eq('id', userId)
+      .single();
+    
+    if (data) {
+      setCredits(data.credits || 0);
+    }
+  };
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    toast({
+      title: "Signed out successfully",
+    });
+    navigate("/");
+  };
+
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-md">
       <div className="container mx-auto px-4">
@@ -12,7 +62,7 @@ export const Navbar = () => {
               <Sparkles className="w-5 h-5 text-primary-foreground" />
             </div>
             <span className="text-xl font-bold group-hover:text-primary transition-smooth">
-              EventFlow
+              CityVibe
             </span>
           </Link>
           
@@ -33,17 +83,32 @@ export const Navbar = () => {
               <Button variant="ghost" className="gap-2">
                 <Coins className="w-4 h-4" />
                 Credits
+                {user && <span className="text-primary font-bold">({credits})</span>}
               </Button>
             </Link>
-            <Button variant="ghost" className="gap-2" onClick={() => alert('Sign in coming soon!')}>
-              <User className="w-4 h-4" />
-              Sign In
-            </Button>
-            <Link to="/explore">
-              <Button variant="hero" size="sm">
-                Get Started
-              </Button>
-            </Link>
+            
+            {user ? (
+              <>
+                <Button variant="ghost" className="gap-2" onClick={handleSignOut}>
+                  <LogOut className="w-4 h-4" />
+                  Sign Out
+                </Button>
+              </>
+            ) : (
+              <>
+                <Link to="/auth">
+                  <Button variant="ghost" className="gap-2">
+                    <User className="w-4 h-4" />
+                    Sign In
+                  </Button>
+                </Link>
+                <Link to="/auth">
+                  <Button variant="hero" size="sm">
+                    Get Started
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </div>

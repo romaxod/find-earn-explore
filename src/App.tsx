@@ -8,6 +8,7 @@ import Explore from "./pages/Explore";
 import EventDetail from "./pages/EventDetail";
 import CreditShop from "./pages/CreditShop";
 import Map from "./pages/Map";
+import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -24,6 +25,7 @@ const App = () => (
           <Route path="/event/:id" element={<EventDetail />} />
           <Route path="/credits" element={<CreditShop />} />
           <Route path="/map" element={<Map />} />
+          <Route path="/auth" element={<Auth />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
