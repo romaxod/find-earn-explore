@@ -70,22 +70,64 @@ const TbilisiMap = ({ highlightEvent }: TbilisiMapProps = {}) => {
       const marker = new mapboxgl.Marker(el)
         .setLngLat([event.location_lng, event.location_lat])
         .setPopup(
-          new mapboxgl.Popup({ offset: 25, className: 'event-popup' })
+          new mapboxgl.Popup({ offset: 25, className: 'event-popup', maxWidth: '320px' })
             .setHTML(`
-              <div class="p-3 min-w-[200px]">
-                <h3 class="font-bold text-base mb-1">${event.title}</h3>
-                <p class="text-xs opacity-70 mb-2">${event.category}</p>
-                <p class="text-xs mb-2">${event.location_name}</p>
-                <p class="text-xs mb-2">${new Date(event.time).toLocaleDateString()}</p>
-                <button 
-                  class="view-event-btn w-full py-2 px-3 rounded text-sm font-medium transition-smooth"
-                  data-event-id="${event.id}"
-                  style="background: hsl(160 85% 45%); color: white;"
-                  onmouseover="this.style.background='hsl(160 85% 55%)'"
-                  onmouseout="this.style.background='hsl(160 85% 45%)'"
-                >
-                  View Details
-                </button>
+              <div class="overflow-hidden">
+                <div class="relative h-32 mb-3">
+                  <img 
+                    src="${event.image_url}" 
+                    alt="${event.title}"
+                    class="w-full h-full object-cover"
+                    onerror="this.src='https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=400&q=80'"
+                  />
+                  <div class="absolute top-2 right-2 px-2 py-1 rounded text-xs font-medium" style="background: hsl(160 85% 45%); color: white;">
+                    ${event.category}
+                  </div>
+                </div>
+                <div class="px-3 pb-3">
+                  <h3 class="font-bold text-base mb-2">${event.title}</h3>
+                  <div class="space-y-1 mb-3 text-xs opacity-80">
+                    <div class="flex items-center gap-1">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                        <circle cx="12" cy="10" r="3"/>
+                      </svg>
+                      <span>${event.location_name}</span>
+                    </div>
+                    <div class="flex items-center gap-1">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                        <line x1="16" y1="2" x2="16" y2="6"/>
+                        <line x1="8" y1="2" x2="8" y2="6"/>
+                        <line x1="3" y1="10" x2="21" y2="10"/>
+                      </svg>
+                      <span>${new Date(event.time).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                    </div>
+                    <div class="flex items-center gap-1">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <polyline points="12 6 12 12 16 14"/>
+                      </svg>
+                      <span>${new Date(event.time).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</span>
+                    </div>
+                    <div class="flex items-center gap-1 font-semibold" style="color: hsl(160 85% 45%);">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="1" x2="12" y2="23"/>
+                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                      </svg>
+                      <span>₾${event.price}</span>
+                    </div>
+                  </div>
+                  <button 
+                    class="view-event-btn w-full py-2 px-3 rounded text-sm font-medium transition-smooth"
+                    data-event-id="${event.id}"
+                    style="background: hsl(160 85% 45%); color: white;"
+                    onmouseover="this.style.background='hsl(160 85% 55%)'"
+                    onmouseout="this.style.background='hsl(160 85% 45%)'"
+                  >
+                    View Details
+                  </button>
+                </div>
               </div>
             `)
         )
@@ -283,11 +325,24 @@ const TbilisiMap = ({ highlightEvent }: TbilisiMapProps = {}) => {
         .mapboxgl-popup-content {
           background: hsl(240 8% 8%) !important;
           color: hsl(240 5% 98%) !important;
-          border-radius: 0.5rem !important;
+          border-radius: 0.75rem !important;
           box-shadow: 0 10px 40px rgba(0,0,0,0.5) !important;
+          padding: 0 !important;
+          overflow: hidden;
         }
         .mapboxgl-popup-tip {
           border-top-color: hsl(240 8% 8%) !important;
+        }
+        .mapboxgl-popup-close-button {
+          color: white;
+          font-size: 20px;
+          padding: 4px 8px;
+          background: rgba(0,0,0,0.3);
+          border-radius: 4px;
+          margin: 4px;
+        }
+        .mapboxgl-popup-close-button:hover {
+          background: rgba(0,0,0,0.5);
         }
       `}</style>
     </div>
