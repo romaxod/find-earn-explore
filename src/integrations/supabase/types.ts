@@ -14,7 +14,122 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      attendance: {
+        Row: {
+          earned_credits: number | null
+          event_id: string
+          id: string
+          timestamp: string | null
+          user_id: string
+        }
+        Insert: {
+          earned_credits?: number | null
+          event_id: string
+          id?: string
+          timestamp?: string | null
+          user_id: string
+        }
+        Update: {
+          earned_credits?: number | null
+          event_id?: string
+          id?: string
+          timestamp?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      events: {
+        Row: {
+          attendees_count: number | null
+          category: string
+          created_at: string | null
+          description: string | null
+          id: string
+          image_url: string | null
+          location_lat: number
+          location_lng: number
+          location_name: string
+          price: number
+          time: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          attendees_count?: number | null
+          category: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          location_lat: number
+          location_lng: number
+          location_name: string
+          price?: number
+          time: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          attendees_count?: number | null
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          location_lat?: number
+          location_lng?: number
+          location_name?: string
+          price?: number
+          time?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string | null
+          credits: number | null
+          email: string
+          hobbies: string[] | null
+          id: string
+          mood: string | null
+          name: string
+          promotions: string[] | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          credits?: number | null
+          email: string
+          hobbies?: string[] | null
+          id: string
+          mood?: string | null
+          name: string
+          promotions?: string[] | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          credits?: number | null
+          email?: string
+          hobbies?: string[] | null
+          id?: string
+          mood?: string | null
+          name?: string
+          promotions?: string[] | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
