@@ -16,63 +16,123 @@ const Explore = () => {
   const mockEvents = [
     {
       id: "1",
-      title: "Electric Sunset: Summer Rooftop Party",
+      title: "Bassiani: Techno Night with International DJs",
       category: "Nightlife",
-      location: "Sky Lounge, Downtown",
-      time: "Tonight, 9 PM - 3 AM",
-      credits: 150,
-      image: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&q=80",
-      distance: "1.2 km"
+      location: "Bassiani Club, Dinamo Stadium",
+      time: "Friday, 11 PM - 8 AM",
+      credits: 200,
+      image: "https://images.unsplash.com/photo-1571266028243-d220c82ae8a5?w=800&q=80",
+      distance: "2.1 km"
     },
     {
       id: "2",
-      title: "Contemporary Art Exhibition: Urban Dreams",
+      title: "Contemporary Georgian Art Exhibition",
       category: "Arts",
-      location: "Modern Art Museum",
-      time: "Today, 10 AM - 8 PM",
+      location: "Tbilisi History Museum",
+      time: "Daily, 11 AM - 7 PM",
       credits: 80,
       image: "https://images.unsplash.com/photo-1536924940846-227afb31e2a5?w=800&q=80",
-      distance: "2.5 km"
+      distance: "1.5 km"
     },
     {
       id: "3",
-      title: "Jazz Under the Stars",
+      title: "Live Jazz at Dive Bar",
       category: "Music",
-      location: "Central Park Amphitheater",
-      time: "Tomorrow, 7 PM - 11 PM",
-      credits: 120,
+      location: "Dive Bar, Aghmashenebeli Ave",
+      time: "Thursday, 9 PM - 1 AM",
+      credits: 100,
       image: "https://images.unsplash.com/photo-1511192336575-5a79af67a629?w=800&q=80",
-      distance: "800 m"
+      distance: "900 m"
     },
     {
       id: "4",
-      title: "Michelin Star Pop-Up Experience",
+      title: "Georgian Wine Tasting Experience",
       category: "Food",
-      location: "The Culinary Space",
-      time: "This Friday, 6 PM - 10 PM",
-      credits: 200,
-      image: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&q=80",
-      distance: "3.1 km"
-    },
-    {
-      id: "5",
-      title: "Sunrise Yoga in the Park",
-      category: "Wellness",
-      location: "Riverside Park",
-      time: "Every Morning, 6 AM - 7:30 AM",
-      credits: 60,
-      image: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=800&q=80",
+      location: "Vino Underground, Old Tbilisi",
+      time: "Every Evening, 6 PM - 10 PM",
+      credits: 150,
+      image: "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=800&q=80",
       distance: "1.8 km"
     },
     {
+      id: "5",
+      title: "Yoga on the Mtatsminda",
+      category: "Wellness",
+      location: "Mtatsminda Park",
+      time: "Every Morning, 7 AM - 8:30 AM",
+      credits: 60,
+      image: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=800&q=80",
+      distance: "3.2 km"
+    },
+    {
       id: "6",
-      title: "Underground Techno Marathon",
+      title: "Khidi: Underground Electronic Session",
       category: "Nightlife",
-      location: "The Basement Club",
-      time: "Saturday, 11 PM - 6 AM",
+      location: "Khidi Club, near Railway Station",
+      time: "Saturday, 12 AM - 9 AM",
       credits: 180,
-      image: "https://images.unsplash.com/photo-1571266028243-d220c82ae8a5?w=800&q=80",
-      distance: "2.2 km"
+      image: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&q=80",
+      distance: "2.8 km"
+    },
+    {
+      id: "7",
+      title: "Tbilisi Open Air Festival",
+      category: "Music",
+      location: "Lisi Lake",
+      time: "June 15-16, 2 PM - 12 AM",
+      credits: 250,
+      image: "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=800&q=80",
+      distance: "6.5 km"
+    },
+    {
+      id: "8",
+      title: "Cafe Gallery: Indie Music Night",
+      category: "Music",
+      location: "Cafe Gallery, Vera",
+      time: "Wednesday, 8 PM - 12 AM",
+      credits: 90,
+      image: "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&q=80",
+      distance: "1.1 km"
+    },
+    {
+      id: "9",
+      title: "Fabrika: Rooftop Cinema Under Stars",
+      category: "Culture",
+      location: "Fabrika Tbilisi",
+      time: "Every Friday, 9 PM",
+      credits: 70,
+      image: "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=800&q=80",
+      distance: "1.6 km"
+    },
+    {
+      id: "10",
+      title: "Traditional Georgian Supra Feast",
+      category: "Food",
+      location: "Shavi Lomi Restaurant",
+      time: "Saturday, 7 PM - 11 PM",
+      credits: 220,
+      image: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&q=80",
+      distance: "2.3 km"
+    },
+    {
+      id: "11",
+      title: "Mtkvarze: Riverside Party",
+      category: "Nightlife",
+      location: "Mtkvarze Bar, Mtkvari Embankment",
+      time: "Tonight, 10 PM - 4 AM",
+      credits: 120,
+      image: "https://images.unsplash.com/photo-1470229538611-16ba8c7ffbd7?w=800&q=80",
+      distance: "800 m"
+    },
+    {
+      id: "12",
+      title: "Tbilisi Street Food Festival",
+      category: "Food",
+      location: "Rike Park",
+      time: "This Weekend, 12 PM - 10 PM",
+      credits: 50,
+      image: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800&q=80",
+      distance: "1.3 km"
     }
   ];
   
