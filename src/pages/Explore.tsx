@@ -117,7 +117,7 @@ const Explore = () => {
       matchesDate = eventDate >= tomorrowStart && eventDate <= tomorrowEnd;
     } else if (dateFilter === "week") {
       const weekStart = now; // Start from today
-      const weekEnd = endOfWeek(now, { weekStartsOn: 1 }); // Until end of week (Sunday)
+      const weekEnd = addDays(now, 6); // 7 days from today (today + 6 more days)
       matchesDate = eventDate >= startOfDay(weekStart) && eventDate <= endOfDay(weekEnd);
     }
     
