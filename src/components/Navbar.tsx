@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { MapPin, Sparkles, User } from "lucide-react";
+import { MapPin, Sparkles, User, Coins } from "lucide-react";
 
 export const Navbar = () => {
   return (
@@ -21,6 +21,18 @@ export const Navbar = () => {
               <Button variant="ghost" className="gap-2">
                 <MapPin className="w-4 h-4" />
                 Explore
+              </Button>
+            </Link>
+            <Link to="/map">
+              <Button variant="ghost" className="gap-2">
+                <MapPin className="w-4 h-4" />
+                Map
+              </Button>
+            </Link>
+            <Link to="/credits">
+              <Button variant="ghost" className="gap-2">
+                <Coins className="w-4 h-4" />
+                Credits
               </Button>
             </Link>
             <Button variant="ghost" className="gap-2" onClick={() => alert('Sign in coming soon!')}>
