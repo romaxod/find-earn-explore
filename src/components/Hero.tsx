@@ -27,7 +27,7 @@ export const Hero = () => {
           <h1 className="text-5xl md:text-7xl font-bold tracking-tight">
             Discover Everything
             <br />
-            <span className="gradient-hero bg-clip-text text-transparent">
+            <span className="gradient-hero-text">
               Happening Near You
             </span>
           </h1>

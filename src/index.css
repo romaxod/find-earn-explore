@@ -116,6 +116,13 @@ All colors MUST be HSL.
     background: var(--gradient-hero);
   }
   
+  .gradient-hero-text {
+    background: var(--gradient-hero);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  
   .gradient-card {
     background: var(--gradient-card);
   }

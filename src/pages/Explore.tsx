@@ -88,7 +88,7 @@ const Explore = () => {
         <div className="container max-w-7xl mx-auto space-y-8">
           <div className="space-y-4">
             <h1 className="text-4xl md:text-5xl font-bold">
-              Explore <span className="gradient-hero bg-clip-text text-transparent">Your City</span>
+              Explore <span className="gradient-hero-text">Your City</span>
             </h1>
             <p className="text-xl text-muted-foreground">
               Discover experiences happening right now, near you
