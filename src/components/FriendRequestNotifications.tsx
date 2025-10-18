@@ -52,12 +52,13 @@ export const FriendRequestNotifications = () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (session?.user) {
       setUser(session.user);
-      await fetchRequests();
+      await fetchRequests(session.user.id);
     }
   };
 
-  const fetchRequests = async () => {
-    if (!user?.id) return;
+  const fetchRequests = async (userId?: string) => {
+    const targetUserId = userId || user?.id;
+    if (!targetUserId) return;
     
     try {
       const { data, error } = await supabase
@@ -66,7 +67,7 @@ export const FriendRequestNotifications = () => {
           *,
           sender:sender_id(id, name, email)
         `)
-        .eq('receiver_id', user.id)
+        .eq('receiver_id', targetUserId)
         .eq('status', 'pending')
         .order('created_at', { ascending: false });
       
