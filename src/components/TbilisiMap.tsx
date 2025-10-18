@@ -257,9 +257,9 @@ const TbilisiMap = ({ highlightEvent }: TbilisiMapProps = {}) => {
           'line-cap': 'round'
         },
         paint: {
-          'line-color': 'hsl(160 85% 45%)',
-          'line-width': 3,
-          'line-opacity': 0.6
+          'line-color': '#3b82f6',
+          'line-width': 4,
+          'line-opacity': 0.8
         }
       });
     }
