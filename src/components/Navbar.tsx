@@ -1,6 +1,6 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { MapPin, Sparkles, User, Coins, LogOut, Compass } from "lucide-react";
+import { MapPin, Sparkles, User, Coins, LogOut, Compass, UserCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -98,6 +98,15 @@ export const Navbar = () => {
             
             {user ? (
               <>
+                <Link to="/profile">
+                  <Button 
+                    variant={location.pathname === "/profile" ? "default" : "ghost"} 
+                    className="gap-2"
+                  >
+                    <UserCircle className="w-4 h-4" />
+                    Profile
+                  </Button>
+                </Link>
                 <Button variant="ghost" className="gap-2" onClick={handleSignOut}>
                   <LogOut className="w-4 h-4" />
                   Sign Out
