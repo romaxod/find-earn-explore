@@ -62,20 +62,44 @@ const Profile = () => {
         .from('profiles')
         .select('*')
         .eq('id', userId)
-        .single();
+        .maybeSingle();
       
       if (error) throw error;
       
-      setProfile(data);
-      setName(data.name || "");
-      setAge(data.age?.toString() || "");
-      setGender(data.gender || "");
-      setHobbies(data.hobbies || []);
+      // If no profile exists, create one
+      if (!data) {
+        const { data: { user } } = await supabase.auth.getUser();
+        const newProfile = {
+          id: userId,
+          name: user?.email?.split('@')[0] || 'User',
+          email: user?.email || '',
+          credits: 0,
+          hobbies: [],
+        };
+        
+        const { error: insertError } = await supabase
+          .from('profiles')
+          .insert(newProfile);
+        
+        if (insertError) throw insertError;
+        
+        setProfile(newProfile);
+        setName(newProfile.name);
+        setAge("");
+        setGender("");
+        setHobbies([]);
+      } else {
+        setProfile(data);
+        setName(data.name || "");
+        setAge(data.age?.toString() || "");
+        setGender(data.gender || "");
+        setHobbies(data.hobbies || []);
+      }
     } catch (error) {
       console.error('Error fetching profile:', error);
       toast({
         title: "Error",
-        description: "Failed to load profile",
+        description: "Failed to load profile. Please try refreshing the page.",
         variant: "destructive",
       });
     } finally {
