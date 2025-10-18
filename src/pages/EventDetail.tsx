@@ -196,7 +196,7 @@ const EventDetail = () => {
                 <Button 
                   className="flex-1 gap-2" 
                   size="lg"
-                  onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${event.location_lat},${event.location_lng}`, '_blank')}
+                  onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${event.location_lat},${event.location_lng}`, '_blank', 'noopener,noreferrer')}
                 >
                   <Navigation className="w-4 h-4" />
                   Get Directions
