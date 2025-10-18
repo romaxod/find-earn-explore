@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import TbilisiMap from "@/components/TbilisiMap";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { InviteFriendsDialog } from "@/components/InviteFriendsDialog";
 
 const EventDetail = () => {
   const { id } = useParams();
@@ -309,7 +310,7 @@ const EventDetail = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-4">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-3 pt-4">
                 <Button 
                   className="gap-2" 
                   size="lg"
@@ -328,6 +329,7 @@ const EventDetail = () => {
                   {isGoing && <Check className="w-4 h-4" />}
                   {isGoing ? "Going" : "I'm Going"}
                 </Button>
+                <InviteFriendsDialog eventId={event.id} eventTitle={event.title} />
                 <Button 
                   variant="hero" 
                   className="gap-2" 

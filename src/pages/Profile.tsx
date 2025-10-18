@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
-import { User, Users, MessageCircle, Coins, Mail, Check, X, Send } from "lucide-react";
+import { User, Users, MessageCircle, Coins, Mail, Check, X, Send, Calendar } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
@@ -32,6 +32,7 @@ const Profile = () => {
   // Social features states
   const [friends, setFriends] = useState<any[]>([]);
   const [friendRequests, setFriendRequests] = useState<any[]>([]);
+  const [eventInvitations, setEventInvitations] = useState<any[]>([]);
   const [searchEmail, setSearchEmail] = useState("");
   const [conversations, setConversations] = useState<any[]>([]);
 
@@ -50,6 +51,7 @@ const Profile = () => {
     await fetchProfile(session.user.id);
     await fetchFriends(session.user.id);
     await fetchFriendRequests(session.user.id);
+    await fetchEventInvitations(session.user.id);
     await fetchConversations(session.user.id);
   };
 
@@ -122,6 +124,26 @@ const Profile = () => {
       setFriendRequests(data || []);
     } catch (error) {
       console.error('Error fetching friend requests:', error);
+    }
+  };
+
+  const fetchEventInvitations = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('event_invitations')
+        .select(`
+          *,
+          sender:sender_id(id, name, email),
+          event:event_id(id, title, image_url, time, location_name)
+        `)
+        .eq('receiver_id', userId)
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      setEventInvitations(data || []);
+    } catch (error) {
+      console.error('Error fetching event invitations:', error);
     }
   };
 
@@ -272,6 +294,7 @@ const Profile = () => {
       
       await fetchFriends(user.id);
       await fetchFriendRequests(user.id);
+      await fetchEventInvitations(user.id);
     } catch (error) {
       console.error('Error accepting request:', error);
       toast({
@@ -297,8 +320,61 @@ const Profile = () => {
       });
       
       await fetchFriendRequests(user.id);
+      await fetchEventInvitations(user.id);
     } catch (error) {
       console.error('Error declining request:', error);
+    }
+  };
+
+  const handleAcceptEventInvitation = async (invitationId: string, eventId: string) => {
+    try {
+      const { error } = await supabase
+        .from('event_invitations')
+        .update({ status: 'accepted' })
+        .eq('id', invitationId);
+      
+      if (error) throw error;
+      
+      // Optionally auto-RSVP to the event
+      await supabase
+        .from('event_rsvps')
+        .insert({
+          event_id: eventId,
+          user_id: user.id,
+        });
+      
+      toast({
+        title: "Invitation accepted! 🎉",
+        description: "You're now going to this event",
+      });
+      
+      await fetchEventInvitations(user.id);
+    } catch (error) {
+      console.error('Error accepting invitation:', error);
+      toast({
+        title: "Error",
+        description: "Failed to accept invitation",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeclineEventInvitation = async (invitationId: string) => {
+    try {
+      const { error } = await supabase
+        .from('event_invitations')
+        .update({ status: 'declined' })
+        .eq('id', invitationId);
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Invitation declined",
+      });
+      
+      await fetchEventInvitations(user.id);
+    } catch (error) {
+      console.error('Error declining invitation:', error);
     }
   };
 
@@ -494,6 +570,59 @@ const Profile = () => {
             </TabsContent>
             
             <TabsContent value="friends" className="space-y-6 mt-6">
+              {eventInvitations.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Calendar className="w-5 h-5" />
+                      Event Invitations ({eventInvitations.length})
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {eventInvitations.map((invitation: any) => (
+                      <div key={invitation.id} className="flex items-start gap-3 p-3 border rounded-lg">
+                        <img 
+                          src={invitation.event.image_url} 
+                          alt={invitation.event.title}
+                          className="w-20 h-20 object-cover rounded-lg"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium truncate">{invitation.event.title}</p>
+                          <p className="text-sm text-muted-foreground">
+                            Invited by {invitation.sender.name}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            {new Date(invitation.event.time).toLocaleDateString()} at {invitation.event.location_name}
+                          </p>
+                        </div>
+                        <div className="flex gap-2 flex-shrink-0">
+                          <Button 
+                            size="sm" 
+                            onClick={() => handleAcceptEventInvitation(invitation.id, invitation.event_id)}
+                          >
+                            <Check className="w-4 h-4" />
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => handleDeclineEventInvitation(invitation.id)}
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="ghost"
+                            onClick={() => navigate(`/event/${invitation.event_id}`)}
+                          >
+                            View
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+              )}
+              
               {friendRequests.length > 0 && (
                 <Card>
                   <CardHeader>
