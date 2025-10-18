@@ -5,10 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { MapPin } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 
-const MAPBOX_TOKEN = '43dfc4b3-4a0b-439f-8e5d-a6757ed28d31';
+const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 
 interface TbilisiMapProps {
   highlightEvent?: { lat: number; lng: number };
