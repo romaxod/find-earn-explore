@@ -60,6 +60,12 @@ const Messages = () => {
                 if (prev.some(m => m.id === data.id)) return prev;
                 return [...prev, data];
               });
+              
+              // Update last_read_at since user is viewing this conversation
+              await supabase.rpc('update_conversation_read_status', {
+                conv_id: conversationId,
+                user_id: user.id
+              });
             }
           }
         )
