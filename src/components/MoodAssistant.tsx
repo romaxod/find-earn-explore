@@ -17,6 +17,7 @@ const quickMoods = [
 ];
 
 interface Suggestion {
+  id: string;
   title: string;
   reason: string;
   wellness_benefit: string;
@@ -149,14 +150,7 @@ export const MoodAssistant = () => {
           <div className="grid gap-4">
             {suggestions.map((suggestion, index) => (
               <Card key={index} className="hover:border-primary/50 transition-all cursor-pointer"
-                onClick={() => {
-                  // Find the event and navigate to it
-                  toast({
-                    title: "Tip",
-                    description: "Search for this event in the Explore page",
-                  });
-                  navigate('/explore');
-                }}
+                onClick={() => navigate(`/event/${suggestion.id}`)}
               >
                 <CardHeader>
                   <div className="flex items-start justify-between gap-4">

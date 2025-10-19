@@ -44,6 +44,7 @@ serve(async (req) => {
 
     // Prepare event data for AI
     const eventsList = events?.map(e => ({
+      id: e.id,
       title: e.title,
       category: e.category,
       description: e.description,
@@ -122,13 +123,24 @@ serve(async (req) => {
       // Try to extract JSON from the response
       const jsonMatch = aiResponse.match(/\[[\s\S]*\]/);
       if (jsonMatch) {
-        suggestions = JSON.parse(jsonMatch[0]);
+        const aiSuggestions = JSON.parse(jsonMatch[0]);
+        // Match AI suggestions with actual events to get IDs
+        suggestions = aiSuggestions.map((suggestion: any) => {
+          const matchedEvent = events?.find(e => 
+            e.title.toLowerCase() === suggestion.title.toLowerCase()
+          );
+          return {
+            ...suggestion,
+            id: matchedEvent?.id || null
+          };
+        }).filter((s: any) => s.id !== null); // Only include matched events
       } else {
         // If no JSON found, create a structured response from the text
         suggestions = [{
           title: "AI Recommendations",
           reason: aiResponse,
-          wellness_benefit: "Follow AI advice for improved wellness"
+          wellness_benefit: "Follow AI advice for improved wellness",
+          id: null
         }];
       }
     } catch (parseError) {
@@ -136,7 +148,8 @@ serve(async (req) => {
       suggestions = [{
         title: "AI Recommendations",
         reason: aiResponse,
-        wellness_benefit: "Follow AI advice for improved wellness"
+        wellness_benefit: "Follow AI advice for improved wellness",
+        id: null
       }];
     }
 
