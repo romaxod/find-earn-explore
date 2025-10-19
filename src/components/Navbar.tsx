@@ -22,6 +22,8 @@ export const Navbar = () => {
       if (session?.user) {
         fetchCredits(session.user.id);
 
+        console.log('🔔 Setting up message notification listener for user:', session.user.id);
+
         // Set up realtime subscription for incoming messages
         messageChannel = supabase
           .channel('incoming-messages')
@@ -34,19 +36,28 @@ export const Navbar = () => {
             },
             async (payload) => {
               const newMessage = payload.new as any;
+              console.log('📨 New message received:', newMessage);
+              console.log('👤 Current user ID:', session.user.id);
+              console.log('📤 Message sender ID:', newMessage.sender_id);
               
               // Only show red dot if message is NOT from current user
               if (newMessage.sender_id !== session.user.id) {
+                console.log('✅ Showing red dot - message from someone else');
                 setShowNotificationDot(true);
                 
                 // Hide the dot after 4 seconds
                 setTimeout(() => {
+                  console.log('⏰ Hiding red dot after 4 seconds');
                   setShowNotificationDot(false);
                 }, 4000);
+              } else {
+                console.log('❌ Not showing dot - message is from current user');
               }
             }
           )
-          .subscribe();
+          .subscribe((status) => {
+            console.log('📡 Message channel subscription status:', status);
+          });
       }
     });
 
@@ -64,6 +75,7 @@ export const Navbar = () => {
     return () => {
       subscription.unsubscribe();
       if (messageChannel) {
+        console.log('🔌 Unsubscribing from message channel');
         supabase.removeChannel(messageChannel);
       }
     };
