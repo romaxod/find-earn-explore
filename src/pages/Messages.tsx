@@ -38,10 +38,18 @@ const Messages = () => {
             filter: `conversation_id=eq.${conversationId}`
           },
           (payload) => {
+            console.log('New message received:', payload);
+            // Add the new message directly to avoid refetching
+            const newMessage = payload.new as any;
+            setMessages(prev => [...prev, newMessage]);
+            
+            // Also fetch to get the sender info
             fetchMessages();
           }
         )
-        .subscribe();
+        .subscribe((status) => {
+          console.log('Realtime subscription status:', status);
+        });
 
       return () => {
         supabase.removeChannel(channel);
