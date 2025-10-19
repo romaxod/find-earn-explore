@@ -429,6 +429,35 @@ const Profile = () => {
     setHobbies(hobbies.filter(h => h !== hobby));
   };
 
+  const handleConversationsTabClick = async () => {
+    if (!user) return;
+    
+    // Immediately clear the notification badge
+    window.dispatchEvent(new CustomEvent('conversationsClicked'));
+    
+    // Mark all conversations as read
+    try {
+      const { data: userConvData } = await supabase
+        .from('conversation_participants')
+        .select('conversation_id')
+        .eq('user_id', user.id);
+      
+      if (userConvData && userConvData.length > 0) {
+        for (const conv of userConvData) {
+          await supabase.rpc('update_conversation_read_status', {
+            conv_id: conv.conversation_id,
+            user_id: user.id
+          });
+        }
+        
+        // Notify navbar to refresh after marking as read
+        window.dispatchEvent(new CustomEvent('conversationsViewed'));
+      }
+    } catch (error) {
+      console.error('Error marking conversations as read:', error);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
@@ -470,10 +499,7 @@ const Profile = () => {
               <TabsTrigger 
                 value="conversations" 
                 className="gap-2"
-                onClick={() => {
-                  // Clear notifications immediately when clicking conversations tab
-                  window.dispatchEvent(new CustomEvent('conversationsClicked'));
-                }}
+                onClick={handleConversationsTabClick}
               >
                 <MessageCircle className="w-4 h-4" />
                 Conversations ({conversations.length})
@@ -723,19 +749,6 @@ const Profile = () => {
             </TabsContent>
             
             <TabsContent value="conversations" className="space-y-6 mt-6">
-              <Button 
-                className="w-full mb-4" 
-                size="lg"
-                onClick={() => {
-                  // Clear notifications immediately when navigating to conversations
-                  window.dispatchEvent(new CustomEvent('conversationsClicked'));
-                  navigate('/conversations');
-                }}
-              >
-                <MessageCircle className="w-5 h-5 mr-2" />
-                View All Conversations ({conversations.length})
-              </Button>
-              
               <Card>
                 <CardHeader>
                   <CardTitle>All Conversations ({conversations.length})</CardTitle>
