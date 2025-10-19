@@ -70,6 +70,21 @@ const Conversations = () => {
     try {
       setLoading(true);
       
+      // Mark all conversations as read when viewing this page
+      const { data: userConvData } = await supabase
+        .from('conversation_participants')
+        .select('conversation_id')
+        .eq('user_id', userId);
+      
+      if (userConvData && userConvData.length > 0) {
+        for (const conv of userConvData) {
+          await supabase.rpc('update_conversation_read_status', {
+            conv_id: conv.conversation_id,
+            user_id: userId
+          });
+        }
+      }
+      
       // Get all conversations where user is a participant
       const { data: participantData, error: partError } = await supabase
         .from('conversation_participants')
