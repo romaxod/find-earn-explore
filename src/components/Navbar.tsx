@@ -16,7 +16,12 @@ export const Navbar = () => {
   useEffect(() => {
     let notificationChannel: any;
 
-    // Listen for custom event when user views conversations
+    // Listen for custom event when user clicks conversations button - clear immediately
+    const handleConversationsClicked = () => {
+      setHasNotifications(false);
+    };
+
+    // Listen for custom event when conversations data is updated
     const handleConversationsViewed = () => {
       supabase.auth.getSession().then(({ data: { session } }) => {
         if (session?.user) {
@@ -25,6 +30,7 @@ export const Navbar = () => {
       });
     };
 
+    window.addEventListener('conversationsClicked', handleConversationsClicked);
     window.addEventListener('conversationsViewed', handleConversationsViewed);
 
     // Check initial session
@@ -93,6 +99,7 @@ export const Navbar = () => {
       if (notificationChannel) {
         supabase.removeChannel(notificationChannel);
       }
+      window.removeEventListener('conversationsClicked', handleConversationsClicked);
       window.removeEventListener('conversationsViewed', handleConversationsViewed);
     };
   }, []);

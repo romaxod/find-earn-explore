@@ -467,7 +467,14 @@ const Profile = () => {
                 <Users className="w-4 h-4" />
                 Friends ({friends.length})
               </TabsTrigger>
-              <TabsTrigger value="conversations" className="gap-2">
+              <TabsTrigger 
+                value="conversations" 
+                className="gap-2"
+                onClick={() => {
+                  // Clear notifications immediately when clicking conversations tab
+                  window.dispatchEvent(new CustomEvent('conversationsClicked'));
+                }}
+              >
                 <MessageCircle className="w-4 h-4" />
                 Conversations ({conversations.length})
               </TabsTrigger>
@@ -716,6 +723,19 @@ const Profile = () => {
             </TabsContent>
             
             <TabsContent value="conversations" className="space-y-6 mt-6">
+              <Button 
+                className="w-full mb-4" 
+                size="lg"
+                onClick={() => {
+                  // Clear notifications immediately when navigating to conversations
+                  window.dispatchEvent(new CustomEvent('conversationsClicked'));
+                  navigate('/conversations');
+                }}
+              >
+                <MessageCircle className="w-5 h-5 mr-2" />
+                View All Conversations ({conversations.length})
+              </Button>
+              
               <Card>
                 <CardHeader>
                   <CardTitle>All Conversations ({conversations.length})</CardTitle>
