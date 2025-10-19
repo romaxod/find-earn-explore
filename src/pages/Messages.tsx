@@ -154,92 +154,112 @@ const Messages = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
       
-      <main className="pt-24 pb-16 px-4">
-        <div className="container max-w-4xl mx-auto">
-          <Button 
-            variant="ghost" 
-            className="mb-4 gap-2"
-            onClick={() => navigate('/profile')}
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Profile
-          </Button>
-          
-          <Card className="h-[600px] flex flex-col">
-            <CardHeader className="border-b">
-              <CardTitle className="flex items-center gap-3">
-                <Avatar>
-                  <AvatarFallback>
-                    {participants[0]?.name?.[0] || "?"}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <p>{participants.map(p => p.name).join(", ")}</p>
-                  <p className="text-sm text-muted-foreground font-normal">
-                    {participants.map(p => p.email).join(", ")}
-                  </p>
-                </div>
-              </CardTitle>
-            </CardHeader>
+      <main className="flex-1 flex flex-col pt-20">
+        <div className="container max-w-4xl mx-auto flex flex-col h-full px-4">
+          {/* Header */}
+          <div className="bg-card border-b py-4 px-4 flex items-center gap-3 -mx-4">
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={() => navigate('/profile')}
+              className="shrink-0"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
             
-            <CardContent className="flex-1 flex flex-col p-0">
-              <ScrollArea className="flex-1 p-4">
-                <div className="space-y-4">
-                  {messages.length === 0 ? (
-                    <p className="text-muted-foreground text-center py-8">
+            <Avatar className="shrink-0">
+              <AvatarFallback className="bg-primary/10 text-primary">
+                {participants[0]?.name?.[0] || "?"}
+              </AvatarFallback>
+            </Avatar>
+            
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold truncate">{participants.map(p => p.name).join(", ")}</p>
+              <p className="text-sm text-muted-foreground truncate">
+                Active now
+              </p>
+            </div>
+          </div>
+          
+          {/* Messages */}
+          <ScrollArea className="flex-1 px-4 py-6">
+            <div className="space-y-2">
+              {messages.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 gap-3">
+                  <Avatar className="w-16 h-16">
+                    <AvatarFallback className="bg-primary/10 text-primary text-2xl">
+                      {participants[0]?.name?.[0] || "?"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="text-center">
+                    <p className="font-medium">{participants.map(p => p.name).join(", ")}</p>
+                    <p className="text-sm text-muted-foreground mt-1">
                       No messages yet. Start the conversation!
                     </p>
-                  ) : (
-                    messages.map((message) => (
+                  </div>
+                </div>
+              ) : (
+                messages.map((message, index) => {
+                  const isOwn = message.sender_id === user?.id;
+                  const showTime = index === 0 || 
+                    new Date(message.created_at).getTime() - new Date(messages[index - 1].created_at).getTime() > 300000;
+                  
+                  return (
+                    <div key={message.id}>
+                      {showTime && (
+                        <div className="text-xs text-center text-muted-foreground my-4">
+                          {new Date(message.created_at).toLocaleTimeString('en-GB', {
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </div>
+                      )}
                       <div
-                        key={message.id}
-                        className={`flex ${
-                          message.sender_id === user?.id ? "justify-end" : "justify-start"
-                        }`}
+                        className={`flex ${isOwn ? "justify-end" : "justify-start"} animate-fade-in`}
                       >
                         <div
-                          className={`max-w-[70%] rounded-lg p-3 ${
-                            message.sender_id === user?.id
-                              ? "bg-primary text-primary-foreground"
-                              : "bg-muted"
+                          className={`max-w-[75%] sm:max-w-[60%] rounded-2xl px-4 py-2 ${
+                            isOwn
+                              ? "bg-primary text-primary-foreground rounded-br-md"
+                              : "bg-muted rounded-bl-md"
                           }`}
                         >
-                          <p className="text-sm font-medium mb-1">
-                            {message.sender.name}
-                          </p>
-                          <p>{message.content}</p>
-                          <p className="text-xs opacity-70 mt-1">
-                            {new Date(message.created_at).toLocaleTimeString('en-GB', {
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            })}
+                          <p className="text-[15px] leading-relaxed break-words">
+                            {message.content}
                           </p>
                         </div>
                       </div>
-                    ))
-                  )}
-                  <div ref={scrollRef} />
-                </div>
-              </ScrollArea>
-              
-              <div className="p-4 border-t">
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="Type a message..."
-                    value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                  />
-                  <Button onClick={handleSendMessage}>
-                    <Send className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+                    </div>
+                  );
+                })
+              )}
+              <div ref={scrollRef} />
+            </div>
+          </ScrollArea>
+          
+          {/* Input */}
+          <div className="bg-card border-t py-4 px-4 -mx-4">
+            <div className="flex gap-2 items-end">
+              <Input
+                placeholder="Message..."
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
+                className="flex-1 rounded-full bg-muted border-0 px-4 py-2 min-h-[44px] resize-none"
+              />
+              <Button 
+                onClick={handleSendMessage}
+                size="icon"
+                className="rounded-full h-11 w-11 shrink-0"
+                disabled={!newMessage.trim()}
+              >
+                <Send className="w-5 h-5" />
+              </Button>
+            </div>
+          </div>
         </div>
       </main>
     </div>
