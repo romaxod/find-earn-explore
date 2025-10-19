@@ -27,8 +27,14 @@ const Messages = () => {
 
   useEffect(() => {
     if (conversationId && user) {
+      console.log('Setting up realtime subscription for conversation:', conversationId);
+      
       const channel = supabase
-        .channel(`messages-${conversationId}`)
+        .channel(`conversation:${conversationId}`, {
+          config: {
+            broadcast: { self: true },
+          },
+        })
         .on(
           'postgres_changes',
           {
@@ -38,20 +44,22 @@ const Messages = () => {
             filter: `conversation_id=eq.${conversationId}`
           },
           (payload) => {
-            console.log('New message received:', payload);
-            // Add the new message directly to avoid refetching
-            const newMessage = payload.new as any;
-            setMessages(prev => [...prev, newMessage]);
-            
-            // Also fetch to get the sender info
+            console.log('✅ Real-time message received:', payload);
             fetchMessages();
           }
         )
-        .subscribe((status) => {
-          console.log('Realtime subscription status:', status);
+        .subscribe((status, err) => {
+          console.log('Realtime subscription status:', status, err);
+          if (status === 'SUBSCRIBED') {
+            console.log('✅ Successfully subscribed to conversation:', conversationId);
+          }
+          if (err) {
+            console.error('❌ Subscription error:', err);
+          }
         });
 
       return () => {
+        console.log('Cleaning up subscription for:', conversationId);
         supabase.removeChannel(channel);
       };
     }
@@ -127,19 +135,24 @@ const Messages = () => {
     if (!newMessage.trim() || !user) return;
     
     try {
-      const { error } = await supabase
+      console.log('Sending message to conversation:', conversationId);
+      
+      const { data, error } = await supabase
         .from('messages')
         .insert({
           conversation_id: conversationId,
           sender_id: user.id,
           content: newMessage.trim()
-        });
+        })
+        .select()
+        .single();
       
       if (error) throw error;
       
+      console.log('✅ Message sent successfully:', data);
       setNewMessage("");
     } catch (error) {
-      console.error('Error sending message:', error);
+      console.error('❌ Error sending message:', error);
       toast({
         title: "Error",
         description: "Failed to send message",
