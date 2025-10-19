@@ -49,6 +49,18 @@ export const Navbar = () => {
               checkNotifications(session.user.id);
             }
           )
+          .on(
+            'postgres_changes',
+            {
+              event: 'UPDATE',
+              schema: 'public',
+              table: 'conversation_participants'
+            },
+            () => {
+              // Re-check when last_read_at is updated
+              checkNotifications(session.user.id);
+            }
+          )
           .subscribe();
       }
     });
