@@ -93,29 +93,31 @@ export const Navbar = () => {
       .eq('receiver_id', userId)
       .eq('status', 'pending');
 
-    // Check for recent messages in user's conversations (last 24 hours)
+    // Check for unread messages in user's conversations
     const { data: userConversations } = await supabase
       .from('conversation_participants')
-      .select('conversation_id')
+      .select('conversation_id, last_read_at')
       .eq('user_id', userId);
 
-    let hasRecentMessages = false;
+    let hasUnreadMessages = false;
     if (userConversations && userConversations.length > 0) {
-      const conversationIds = userConversations.map(c => c.conversation_id);
-      const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-      
-      const { data: recentMessages } = await supabase
-        .from('messages')
-        .select('id')
-        .in('conversation_id', conversationIds)
-        .neq('sender_id', userId)
-        .gte('created_at', oneDayAgo)
-        .limit(1);
-      
-      hasRecentMessages = recentMessages && recentMessages.length > 0;
+      for (const conv of userConversations) {
+        const { data: unreadMessages } = await supabase
+          .from('messages')
+          .select('id')
+          .eq('conversation_id', conv.conversation_id)
+          .neq('sender_id', userId)
+          .gt('created_at', conv.last_read_at || new Date(0).toISOString())
+          .limit(1);
+        
+        if (unreadMessages && unreadMessages.length > 0) {
+          hasUnreadMessages = true;
+          break;
+        }
+      }
     }
 
-    setHasNotifications((invitations && invitations.length > 0) || hasRecentMessages);
+    setHasNotifications((invitations && invitations.length > 0) || hasUnreadMessages);
   };
 
   const handleSignOut = async () => {

@@ -51,18 +51,21 @@ export type Database = {
           conversation_id: string
           id: string
           joined_at: string
+          last_read_at: string | null
           user_id: string
         }
         Insert: {
           conversation_id: string
           id?: string
           joined_at?: string
+          last_read_at?: string | null
           user_id: string
         }
         Update: {
           conversation_id?: string
           id?: string
           joined_at?: string
+          last_read_at?: string | null
           user_id?: string
         }
         Relationships: [
@@ -367,6 +370,10 @@ export type Database = {
       is_user_in_conversation: {
         Args: { _conversation_id: string; _user_id: string }
         Returns: boolean
+      }
+      update_conversation_read_status: {
+        Args: { conv_id: string; user_id: string }
+        Returns: undefined
       }
       user_is_conversation_participant: {
         Args: { _conversation_id: string; _user_id: string }

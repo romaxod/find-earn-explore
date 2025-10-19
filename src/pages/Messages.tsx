@@ -115,6 +115,13 @@ const Messages = () => {
       if (error) throw error;
       
       setParticipants(data?.map((p: any) => p.user) || []);
+      
+      // Mark conversation as read
+      await supabase.rpc('update_conversation_read_status', {
+        conv_id: conversationId,
+        user_id: userId
+      });
+      
       setLoading(false);
     } catch (error) {
       console.error('Error fetching conversation:', error);
