@@ -14,12 +14,42 @@ export const Navbar = () => {
   const [hasNotifications, setHasNotifications] = useState(false);
 
   useEffect(() => {
+    let notificationChannel: any;
+
     // Check initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       if (session?.user) {
         fetchCredits(session.user.id);
         checkNotifications(session.user.id);
+
+        // Set up realtime subscription for invitation changes
+        notificationChannel = supabase
+          .channel('notification-changes')
+          .on(
+            'postgres_changes',
+            {
+              event: '*',
+              schema: 'public',
+              table: 'event_invitations',
+              filter: `receiver_id=eq.${session.user.id}`
+            },
+            () => {
+              checkNotifications(session.user.id);
+            }
+          )
+          .on(
+            'postgres_changes',
+            {
+              event: 'INSERT',
+              schema: 'public',
+              table: 'messages'
+            },
+            () => {
+              checkNotifications(session.user.id);
+            }
+          )
+          .subscribe();
       }
     });
 
@@ -35,7 +65,12 @@ export const Navbar = () => {
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+      if (notificationChannel) {
+        supabase.removeChannel(notificationChannel);
+      }
+    };
   }, []);
 
   const fetchCredits = async (userId: string) => {
