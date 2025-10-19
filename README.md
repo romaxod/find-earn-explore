@@ -2,9 +2,9 @@
 
 ## Project info
 
-Public Project URL: find-earn-explore.lovable.app
+Public Project URL: find-earn-explore.lovable.app     ( უშუალოდ Lovable-ზე გაკეთებული საიტის ლინკი)
 
-**URL**: https://lovable.dev/projects/0676552c-70e4-49d0-b927-c5612a5a05c2
+**URL**: https://lovable.dev/projects/0676552c-70e4-49d0-b927-c5612a5a05c2  (ედიტორი Lovable-ში)
 
 ## How can I edit this code?
 
