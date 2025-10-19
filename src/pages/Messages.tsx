@@ -19,9 +19,13 @@ const Messages = () => {
   const [newMessage, setNewMessage] = useState("");
   const [participants, setParticipants] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMessages, setLoadingMessages] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // Reset state when conversation changes
+    setMessages([]);
+    setLoadingMessages(true);
     checkAuth();
   }, [conversationId]);
 
@@ -30,11 +34,7 @@ const Messages = () => {
       console.log('Setting up realtime subscription for conversation:', conversationId);
       
       const channel = supabase
-        .channel(`conversation:${conversationId}`, {
-          config: {
-            broadcast: { self: true },
-          },
-        })
+        .channel(`messages:${conversationId}`)
         .on(
           'postgres_changes',
           {
@@ -129,6 +129,7 @@ const Messages = () => {
 
   const fetchMessages = async () => {
     try {
+      setLoadingMessages(true);
       const { data, error } = await supabase
         .from('messages')
         .select(`
@@ -143,6 +144,8 @@ const Messages = () => {
       setMessages(data || []);
     } catch (error) {
       console.error('Error fetching messages:', error);
+    } finally {
+      setLoadingMessages(false);
     }
   };
 
@@ -228,58 +231,64 @@ const Messages = () => {
           
           {/* Messages */}
           <ScrollArea className="flex-1 px-4 py-6">
-            <div className="space-y-2">
-              {messages.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 gap-3">
-                  <Avatar className="w-16 h-16">
-                    <AvatarFallback className="bg-primary/10 text-primary text-2xl">
-                      {participants[0]?.name?.[0] || "?"}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="text-center">
-                    <p className="font-medium">{participants.map(p => p.name).join(", ")}</p>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      No messages yet. Start the conversation!
-                    </p>
+            {loadingMessages ? (
+              <div className="flex items-center justify-center py-12">
+                <p className="text-muted-foreground">Loading messages...</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {messages.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-12 gap-3">
+                    <Avatar className="w-16 h-16">
+                      <AvatarFallback className="bg-primary/10 text-primary text-2xl">
+                        {participants[0]?.name?.[0] || "?"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="text-center">
+                      <p className="font-medium">{participants.map(p => p.name).join(", ")}</p>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        No messages yet. Start the conversation!
+                      </p>
+                    </div>
                   </div>
-                </div>
-              ) : (
-                messages.map((message, index) => {
-                  const isOwn = message.sender_id === user?.id;
-                  const showTime = index === 0 || 
-                    new Date(message.created_at).getTime() - new Date(messages[index - 1].created_at).getTime() > 300000;
-                  
-                  return (
-                    <div key={message.id}>
-                      {showTime && (
-                        <div className="text-xs text-center text-muted-foreground my-4">
-                          {new Date(message.created_at).toLocaleTimeString('en-GB', {
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })}
-                        </div>
-                      )}
-                      <div
-                        className={`flex ${isOwn ? "justify-end" : "justify-start"} animate-fade-in`}
-                      >
+                ) : (
+                  messages.map((message, index) => {
+                    const isOwn = message.sender_id === user?.id;
+                    const showTime = index === 0 || 
+                      new Date(message.created_at).getTime() - new Date(messages[index - 1].created_at).getTime() > 300000;
+                    
+                    return (
+                      <div key={message.id}>
+                        {showTime && (
+                          <div className="text-xs text-center text-muted-foreground my-4">
+                            {new Date(message.created_at).toLocaleTimeString('en-GB', {
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </div>
+                        )}
                         <div
-                          className={`max-w-[75%] sm:max-w-[60%] rounded-2xl px-4 py-2 ${
-                            isOwn
-                              ? "bg-primary text-primary-foreground rounded-br-md"
-                              : "bg-muted rounded-bl-md"
-                          }`}
+                          className={`flex ${isOwn ? "justify-end" : "justify-start"} animate-fade-in`}
                         >
-                          <p className="text-[15px] leading-relaxed break-words">
-                            {message.content}
-                          </p>
+                          <div
+                            className={`max-w-[75%] sm:max-w-[60%] rounded-2xl px-4 py-2 ${
+                              isOwn
+                                ? "bg-primary text-primary-foreground rounded-br-md"
+                                : "bg-muted rounded-bl-md"
+                            }`}
+                          >
+                            <p className="text-[15px] leading-relaxed break-words">
+                              {message.content}
+                            </p>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  );
-                })
-              )}
-              <div ref={scrollRef} />
-            </div>
+                    );
+                  })
+                )}
+                <div ref={scrollRef} />
+              </div>
+            )}
           </ScrollArea>
           
           {/* Input */}
