@@ -206,7 +206,7 @@ const Conversations = () => {
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <div>
-              <h1 className="text-4xl font-bold">Messages</h1>
+              <h1 className="text-4xl font-bold">Conversations</h1>
               <p className="text-muted-foreground">
                 {conversations.length} conversation{conversations.length !== 1 ? 's' : ''}
               </p>

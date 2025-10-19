@@ -144,12 +144,18 @@ const Messages = () => {
           sender_id: user.id,
           content: newMessage.trim()
         })
-        .select()
+        .select(`
+          *,
+          sender:sender_id(id, name, email)
+        `)
         .single();
       
       if (error) throw error;
       
       console.log('✅ Message sent successfully:', data);
+      
+      // Immediately add the message to the local state for instant display
+      setMessages(prev => [...prev, data]);
       setNewMessage("");
     } catch (error) {
       console.error('❌ Error sending message:', error);
