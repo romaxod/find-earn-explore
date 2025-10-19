@@ -106,31 +106,44 @@ const Conversations = () => {
       
       if (msgError) throw msgError;
 
-      // Group by conversation
-      const conversationsMap = new Map();
+      // Group by user (not by conversation)
+      const usersMap = new Map();
       
       convData?.forEach((cp: any) => {
-        if (!conversationsMap.has(cp.conversation_id)) {
-          conversationsMap.set(cp.conversation_id, {
-            id: cp.conversation_id,
-            participants: [],
+        const userId = cp.user.id;
+        if (!usersMap.has(userId)) {
+          usersMap.set(userId, {
+            user: cp.user,
+            conversations: [],
             lastMessage: null,
-            lastMessageTime: null
+            lastMessageTime: null,
+            mostRecentConversationId: cp.conversation_id
           });
         }
-        conversationsMap.get(cp.conversation_id).participants.push(cp.user);
+        usersMap.get(userId).conversations.push(cp.conversation_id);
       });
 
-      // Add last messages
+      // Add last messages and find most recent conversation per user
       messagesData?.forEach((msg: any) => {
-        const conv = conversationsMap.get(msg.conversation_id);
-        if (conv && !conv.lastMessage) {
-          conv.lastMessage = msg.content;
-          conv.lastMessageTime = msg.created_at;
+        // Find which user this conversation belongs to
+        for (const [userId, userData] of usersMap.entries()) {
+          if (userData.conversations.includes(msg.conversation_id)) {
+            if (!userData.lastMessageTime || new Date(msg.created_at) > new Date(userData.lastMessageTime)) {
+              userData.lastMessage = msg.content;
+              userData.lastMessageTime = msg.created_at;
+              userData.mostRecentConversationId = msg.conversation_id;
+            }
+          }
         }
       });
 
-      const conversationsList = Array.from(conversationsMap.values())
+      const conversationsList = Array.from(usersMap.values())
+        .map(userData => ({
+          id: userData.mostRecentConversationId,
+          participants: [userData.user],
+          lastMessage: userData.lastMessage,
+          lastMessageTime: userData.lastMessageTime
+        }))
         .sort((a, b) => {
           if (!a.lastMessageTime) return 1;
           if (!b.lastMessageTime) return -1;
