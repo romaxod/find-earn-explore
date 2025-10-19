@@ -429,38 +429,6 @@ const Profile = () => {
     setHobbies(hobbies.filter(h => h !== hobby));
   };
 
-  const handleConversationsTabClick = async () => {
-    if (!user) return;
-    
-    // Immediately clear the notification badge via window function
-    if ((window as any).clearNotificationBadge) {
-      (window as any).clearNotificationBadge();
-    }
-    window.dispatchEvent(new CustomEvent('conversationsClicked'));
-    
-    // Mark all conversations as read with current timestamp
-    try {
-      const { data: userConvData } = await supabase
-        .from('conversation_participants')
-        .select('conversation_id')
-        .eq('user_id', user.id);
-      
-      if (userConvData && userConvData.length > 0) {
-        // Update all conversations with current timestamp
-        await Promise.all(
-          userConvData.map(conv =>
-            supabase.rpc('update_conversation_read_status', {
-              conv_id: conv.conversation_id,
-              user_id: user.id
-            })
-          )
-        );
-      }
-    } catch (error) {
-      console.error('Error marking conversations as read:', error);
-    }
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
@@ -499,11 +467,7 @@ const Profile = () => {
                 <Users className="w-4 h-4" />
                 Friends ({friends.length})
               </TabsTrigger>
-              <TabsTrigger 
-                value="conversations" 
-                className="gap-2"
-                onClick={handleConversationsTabClick}
-              >
+              <TabsTrigger value="conversations" className="gap-2">
                 <MessageCircle className="w-4 h-4" />
                 Conversations ({conversations.length})
               </TabsTrigger>

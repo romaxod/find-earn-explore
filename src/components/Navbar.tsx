@@ -11,39 +11,19 @@ export const Navbar = () => {
   const { toast } = useToast();
   const [user, setUser] = useState<any>(null);
   const [credits, setCredits] = useState(0);
-  const [hasNotifications, setHasNotifications] = useState(false);
-
-  // Add local state setter for Profile page to use
-  (window as any).clearNotificationBadge = () => setHasNotifications(false);
 
   useEffect(() => {
-    let notificationChannel: any;
-    let clearingConversations = false;
-
-    // Listen for custom event when user clicks conversations button - clear immediately and permanently
-    const handleConversationsClicked = () => {
-      console.log('🔔 Conversations clicked - clearing notification badge permanently');
-      setHasNotifications(false);
-      clearingConversations = true;
-      // Keep flag set for 10 seconds to ensure database updates complete and propagate
-      setTimeout(() => {
-        clearingConversations = false;
-        console.log('✅ Ready to check for NEW messages only');
-      }, 10000);
-    };
-
-    window.addEventListener('conversationsClicked', handleConversationsClicked);
+    let messageChannel: any;
 
     // Check initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       if (session?.user) {
         fetchCredits(session.user.id);
-        checkNotifications(session.user.id);
 
-        // Set up realtime subscription for new messages only
-        notificationChannel = supabase
-          .channel('notification-changes')
+        // Set up realtime subscription for incoming messages
+        messageChannel = supabase
+          .channel('incoming-messages')
           .on(
             'postgres_changes',
             {
@@ -51,21 +31,25 @@ export const Navbar = () => {
               schema: 'public',
               table: 'messages'
             },
-            () => {
-              checkNotifications(session.user.id);
-            }
-          )
-          .on(
-            'postgres_changes',
-            {
-              event: 'UPDATE',
-              schema: 'public',
-              table: 'conversation_participants'
-            },
-            () => {
-              // Only re-check if not currently clearing conversations
-              if (!clearingConversations) {
-                checkNotifications(session.user.id);
+            async (payload) => {
+              const newMessage = payload.new as any;
+              
+              // Only show notification if message is NOT from current user
+              if (newMessage.sender_id !== session.user.id) {
+                // Fetch sender info
+                const { data: senderData } = await supabase
+                  .from('profiles')
+                  .select('name')
+                  .eq('id', newMessage.sender_id)
+                  .single();
+                
+                const senderName = senderData?.name || 'Someone';
+                
+                toast({
+                  title: `New message from ${senderName}`,
+                  description: newMessage.content.substring(0, 100) + (newMessage.content.length > 100 ? '...' : ''),
+                  duration: 5000,
+                });
               }
             }
           )
@@ -78,21 +62,18 @@ export const Navbar = () => {
       setUser(session?.user ?? null);
       if (session?.user) {
         fetchCredits(session.user.id);
-        checkNotifications(session.user.id);
       } else {
         setCredits(0);
-        setHasNotifications(false);
       }
     });
 
     return () => {
       subscription.unsubscribe();
-      if (notificationChannel) {
-        supabase.removeChannel(notificationChannel);
+      if (messageChannel) {
+        supabase.removeChannel(messageChannel);
       }
-      window.removeEventListener('conversationsClicked', handleConversationsClicked);
     };
-  }, []);
+  }, [toast]);
 
   const fetchCredits = async (userId: string) => {
     const { data } = await supabase
@@ -104,38 +85,6 @@ export const Navbar = () => {
     if (data) {
       setCredits(data.credits || 0);
     }
-  };
-
-  const checkNotifications = async (userId: string) => {
-    console.log('🔍 Checking notifications for user:', userId);
-
-    // ONLY check for unread messages - ignore event invitations
-    const { data: userConversations } = await supabase
-      .from('conversation_participants')
-      .select('conversation_id, last_read_at')
-      .eq('user_id', userId);
-
-    let hasUnreadMessages = false;
-    if (userConversations && userConversations.length > 0) {
-      for (const conv of userConversations) {
-        const { data: unreadMessages } = await supabase
-          .from('messages')
-          .select('id, created_at')
-          .eq('conversation_id', conv.conversation_id)
-          .neq('sender_id', userId)
-          .gt('created_at', conv.last_read_at || new Date(0).toISOString())
-          .limit(1);
-        
-        if (unreadMessages && unreadMessages.length > 0) {
-          console.log('💬 Unread messages in conversation:', conv.conversation_id, 'last_read_at:', conv.last_read_at);
-          hasUnreadMessages = true;
-          break;
-        }
-      }
-    }
-
-    console.log('📊 Has unread messages:', hasUnreadMessages);
-    setHasNotifications(hasUnreadMessages);
   };
 
   const handleSignOut = async () => {
@@ -193,13 +142,10 @@ export const Navbar = () => {
                 <Link to="/profile">
                   <Button 
                     variant={location.pathname === "/profile" ? "default" : "ghost"} 
-                    className="gap-2 relative"
+                    className="gap-2"
                   >
                     <UserCircle className="w-4 h-4" />
                     Profile
-                    {hasNotifications && (
-                      <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-background" />
-                    )}
                   </Button>
                 </Link>
                 <Button variant="ghost" className="gap-2" onClick={handleSignOut}>
