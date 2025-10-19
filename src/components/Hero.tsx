@@ -56,21 +56,6 @@ export const Hero = () => {
               Learn How It Works
             </Button>
           </div>
-          
-          <div className="pt-12 grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
-            <div className="p-6 rounded-xl gradient-card border border-border/50 backdrop-blur-sm">
-              <div className="text-3xl font-bold text-primary mb-2">10K+</div>
-              <div className="text-muted-foreground">Active Venues</div>
-            </div>
-            <div className="p-6 rounded-xl gradient-card border border-border/50 backdrop-blur-sm">
-              <div className="text-3xl font-bold text-secondary mb-2">500K+</div>
-              <div className="text-muted-foreground">Credits Earned</div>
-            </div>
-            <div className="p-6 rounded-xl gradient-card border border-border/50 backdrop-blur-sm">
-              <div className="text-3xl font-bold text-accent mb-2">24/7</div>
-              <div className="text-muted-foreground">Live Updates</div>
-            </div>
-          </div>
         </div>
       </div>
     </section>
