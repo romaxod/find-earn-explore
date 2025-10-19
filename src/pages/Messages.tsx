@@ -31,10 +31,15 @@ const Messages = () => {
 
   useEffect(() => {
     if (conversationId && user) {
-      console.log('Setting up realtime subscription for conversation:', conversationId);
+      console.log('🔔 Setting up realtime subscription for conversation:', conversationId);
+      console.log('👤 Current user:', user.id);
       
       const channel = supabase
-        .channel(`messages:${conversationId}`)
+        .channel(`messages:${conversationId}`, {
+          config: {
+            broadcast: { self: false }
+          }
+        })
         .on(
           'postgres_changes',
           {
@@ -44,20 +49,36 @@ const Messages = () => {
             filter: `conversation_id=eq.${conversationId}`
           },
           async (payload) => {
-            console.log('✅ Real-time message received:', payload);
+            console.log('📨 Real-time message received:', payload);
             const newMessage = payload.new as any;
+            console.log('📤 Message details:', {
+              id: newMessage.id,
+              sender_id: newMessage.sender_id,
+              content: newMessage.content,
+              created_at: newMessage.created_at
+            });
             
             // Fetch the complete message with sender info
-            const { data } = await supabase
+            const { data, error } = await supabase
               .from('messages')
               .select('*, sender:sender_id(id, name, email)')
               .eq('id', newMessage.id)
               .single();
             
+            if (error) {
+              console.error('❌ Error fetching message details:', error);
+              return;
+            }
+            
             if (data) {
+              console.log('✅ Fetched complete message:', data);
               setMessages(prev => {
                 // Avoid duplicates
-                if (prev.some(m => m.id === data.id)) return prev;
+                if (prev.some(m => m.id === data.id)) {
+                  console.log('⚠️ Message already exists, skipping');
+                  return prev;
+                }
+                console.log('➕ Adding new message to state');
                 return [...prev, data];
               });
               
@@ -70,17 +91,23 @@ const Messages = () => {
           }
         )
         .subscribe((status, err) => {
-          console.log('Realtime subscription status:', status, err);
+          console.log('📡 Realtime subscription status:', status);
+          if (err) {
+            console.error('❌ Subscription error:', err);
+          }
           if (status === 'SUBSCRIBED') {
             console.log('✅ Successfully subscribed to conversation:', conversationId);
           }
-          if (err) {
-            console.error('❌ Subscription error:', err);
+          if (status === 'CHANNEL_ERROR') {
+            console.error('❌ Channel error - realtime not working');
+          }
+          if (status === 'TIMED_OUT') {
+            console.error('⏱️ Subscription timed out');
           }
         });
 
       return () => {
-        console.log('Cleaning up subscription for:', conversationId);
+        console.log('🔌 Cleaning up subscription for:', conversationId);
         supabase.removeChannel(channel);
       };
     }
