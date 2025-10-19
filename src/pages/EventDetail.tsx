@@ -484,8 +484,8 @@ const EventDetail = () => {
                 </Button>
                 <InviteFriendsDialog eventId={event.id} eventTitle={event.title} />
                 <Button 
-                  variant={isNearEvent ? "hero" : "outline"}
-                  className="gap-2" 
+                  variant={isNearEvent ? "hero" : "default"}
+                  className={`gap-2 ${!isNearEvent ? 'bg-green-600 hover:bg-green-700 text-white' : ''}`}
                   size="lg"
                   onClick={isNearEvent ? handleAttendEvent : verifyLocation}
                   disabled={attending || checkingLocation}
@@ -502,7 +502,7 @@ const EventDetail = () => {
                   ) : (
                     <>
                       <MapPin className="w-4 h-4" />
-                      Verify Location
+                      Check In & Earn
                     </>
                   )}
                 </Button>
