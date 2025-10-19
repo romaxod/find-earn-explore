@@ -467,11 +467,9 @@ const Profile = () => {
                 <Users className="w-4 h-4" />
                 Friends ({friends.length})
               </TabsTrigger>
-              <TabsTrigger value="messages" className="gap-2" asChild>
-                <button onClick={() => navigate('/conversations')}>
-                  <MessageCircle className="w-4 h-4" />
-                  Conversations ({conversations.length})
-                </button>
+              <TabsTrigger value="conversations" className="gap-2">
+                <MessageCircle className="w-4 h-4" />
+                Conversations ({conversations.length})
               </TabsTrigger>
             </TabsList>
             
@@ -717,44 +715,50 @@ const Profile = () => {
               </Card>
             </TabsContent>
             
-            <TabsContent value="messages" className="space-y-6 mt-6">
+            <TabsContent value="conversations" className="space-y-6 mt-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>Conversations</CardTitle>
+                  <CardTitle>All Conversations ({conversations.length})</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <ScrollArea className="h-[400px]">
-                    <div className="space-y-3">
-                      {conversations.length === 0 ? (
-                        <p className="text-muted-foreground text-center py-8">
-                          No conversations yet. Message a friend to start chatting!
+                  {conversations.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-12 gap-3">
+                      <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+                        <MessageCircle className="w-8 h-8 text-primary" />
+                      </div>
+                      <div className="text-center">
+                        <p className="font-medium mb-1">No conversations yet</p>
+                        <p className="text-sm text-muted-foreground">
+                          Message a friend from the Friends tab to start chatting!
                         </p>
-                      ) : (
-                        conversations.map((conversation: any) => (
-                          <div 
+                      </div>
+                    </div>
+                  ) : (
+                    <ScrollArea className="h-[500px]">
+                      <div className="space-y-2">
+                        {conversations.map((conversation: any) => (
+                          <button 
                             key={conversation.id} 
-                            className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 cursor-pointer transition-smooth"
+                            className="w-full flex items-center gap-4 p-4 border rounded-lg hover:bg-muted/50 cursor-pointer transition-all text-left animate-fade-in"
                             onClick={() => navigate(`/messages/${conversation.id}`)}
                           >
-                            <div className="flex items-center gap-3">
-                              <Avatar>
-                                <AvatarFallback>
-                                  {conversation.participants[0]?.name?.[0] || "?"}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div>
-                                <p className="font-medium">
-                                  {conversation.participants.map((p: any) => p.name).join(", ")}
-                                </p>
-                                <p className="text-sm text-muted-foreground">Click to open</p>
-                              </div>
+                            <Avatar className="w-12 h-12 shrink-0">
+                              <AvatarFallback className="bg-primary/10 text-primary text-lg">
+                                {conversation.participants[0]?.name?.[0] || "?"}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-semibold truncate">
+                                {conversation.participants.map((p: any) => p.name).join(", ")}
+                              </p>
+                              <p className="text-sm text-muted-foreground">Click to open chat</p>
                             </div>
-                            <MessageCircle className="w-5 h-5 text-muted-foreground" />
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  </ScrollArea>
+                            <MessageCircle className="w-5 h-5 text-muted-foreground shrink-0" />
+                          </button>
+                        ))}
+                      </div>
+                    </ScrollArea>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
