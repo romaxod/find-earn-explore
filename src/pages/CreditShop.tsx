@@ -213,15 +213,9 @@ const CreditShop = () => {
             
             <Card className="max-w-lg mx-auto gradient-card border-primary/20 shadow-glow">
               <CardContent className="pt-8 pb-8">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground uppercase tracking-wider">Available Credits</p>
-                    <p className="text-5xl font-bold gradient-hero-text">{userCredits}</p>
-                  </div>
-                  <Button className="gradient-hero border-0 shadow-glow transition-smooth hover:scale-105">
-                    <Sparkles className="w-4 h-4 mr-2" />
-                    Purchase More
-                  </Button>
+                <div className="space-y-1 text-center">
+                  <p className="text-sm text-muted-foreground uppercase tracking-wider">Available Credits</p>
+                  <p className="text-5xl font-bold gradient-hero-text">{userCredits}</p>
                 </div>
               </CardContent>
             </Card>
