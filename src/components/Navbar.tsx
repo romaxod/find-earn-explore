@@ -11,6 +11,7 @@ export const Navbar = () => {
   const { toast } = useToast();
   const [user, setUser] = useState<any>(null);
   const [credits, setCredits] = useState(0);
+  const [showNotificationDot, setShowNotificationDot] = useState(false);
 
   useEffect(() => {
     let messageChannel: any;
@@ -34,22 +35,14 @@ export const Navbar = () => {
             async (payload) => {
               const newMessage = payload.new as any;
               
-              // Only show notification if message is NOT from current user
+              // Only show red dot if message is NOT from current user
               if (newMessage.sender_id !== session.user.id) {
-                // Fetch sender info
-                const { data: senderData } = await supabase
-                  .from('profiles')
-                  .select('name')
-                  .eq('id', newMessage.sender_id)
-                  .single();
+                setShowNotificationDot(true);
                 
-                const senderName = senderData?.name || 'Someone';
-                
-                toast({
-                  title: `New message from ${senderName}`,
-                  description: newMessage.content.substring(0, 100) + (newMessage.content.length > 100 ? '...' : ''),
-                  duration: 4000,
-                });
+                // Hide the dot after 4 seconds
+                setTimeout(() => {
+                  setShowNotificationDot(false);
+                }, 4000);
               }
             }
           )
@@ -64,6 +57,7 @@ export const Navbar = () => {
         fetchCredits(session.user.id);
       } else {
         setCredits(0);
+        setShowNotificationDot(false);
       }
     });
 
@@ -73,7 +67,7 @@ export const Navbar = () => {
         supabase.removeChannel(messageChannel);
       }
     };
-  }, [toast]);
+  }, []);
 
   const fetchCredits = async (userId: string) => {
     const { data } = await supabase
@@ -142,10 +136,13 @@ export const Navbar = () => {
                 <Link to="/profile">
                   <Button 
                     variant={location.pathname === "/profile" ? "default" : "ghost"} 
-                    className="gap-2"
+                    className="gap-2 relative"
                   >
                     <UserCircle className="w-4 h-4" />
                     Profile
+                    {showNotificationDot && (
+                      <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-background animate-pulse" />
+                    )}
                   </Button>
                 </Link>
                 <Button variant="ghost" className="gap-2" onClick={handleSignOut}>
