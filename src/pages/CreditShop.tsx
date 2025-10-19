@@ -4,10 +4,46 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from "@/components/ui/badge";
 import { Music, Dumbbell, Palette, PartyPopper, Calendar, Sparkles } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 
 const CreditShop = () => {
-  const [userCredits, setUserCredits] = useState(150);
+  const navigate = useNavigate();
+  const [userCredits, setUserCredits] = useState(0);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    checkAuthAndFetchCredits();
+  }, []);
+
+  const checkAuthAndFetchCredits = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) {
+      navigate('/auth');
+      return;
+    }
+    
+    setUserId(session.user.id);
+    await fetchCredits(session.user.id);
+    setLoading(false);
+  };
+
+  const fetchCredits = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('credits')
+        .eq('id', userId)
+        .single();
+      
+      if (error) throw error;
+      setUserCredits(data?.credits || 0);
+    } catch (error) {
+      console.error('Error fetching credits:', error);
+    }
+  };
 
   const discountPackages = [
     {
@@ -111,13 +147,32 @@ const CreditShop = () => {
     }
   ];
 
-  const handlePurchase = (pkg: typeof discountPackages[0]) => {
+  const handlePurchase = async (pkg: typeof discountPackages[0]) => {
+    if (!userId) return;
+    
     if (userCredits >= pkg.credits) {
-      setUserCredits(userCredits - pkg.credits);
-      toast({
-        title: "Discount Package Activated!",
-        description: `${pkg.name}: ${pkg.discount} on ${pkg.category} for ${pkg.duration}`,
-      });
+      try {
+        const newCredits = userCredits - pkg.credits;
+        const { error } = await supabase
+          .from('profiles')
+          .update({ credits: newCredits })
+          .eq('id', userId);
+        
+        if (error) throw error;
+        
+        setUserCredits(newCredits);
+        toast({
+          title: "Discount Package Activated!",
+          description: `${pkg.name}: ${pkg.discount} on ${pkg.category} for ${pkg.duration}`,
+        });
+      } catch (error) {
+        console.error('Error updating credits:', error);
+        toast({
+          title: "Error",
+          description: "Failed to purchase package",
+          variant: "destructive",
+        });
+      }
     } else {
       toast({
         title: "Insufficient Credits",
@@ -126,6 +181,19 @@ const CreditShop = () => {
       });
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <main className="pt-24 pb-16 px-4">
+          <div className="container max-w-7xl mx-auto">
+            <p className="text-xl text-muted-foreground text-center">Loading...</p>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
