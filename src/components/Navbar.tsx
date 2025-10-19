@@ -48,7 +48,7 @@ export const Navbar = () => {
                 toast({
                   title: `New message from ${senderName}`,
                   description: newMessage.content.substring(0, 100) + (newMessage.content.length > 100 ? '...' : ''),
-                  duration: 5000,
+                  duration: 4000,
                 });
               }
             }
