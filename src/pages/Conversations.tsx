@@ -83,6 +83,9 @@ const Conversations = () => {
             user_id: userId
           });
         }
+        
+        // Notify Navbar to refresh notification status immediately
+        window.dispatchEvent(new CustomEvent('conversationsViewed'));
       }
       
       // Get all conversations where user is a participant
