@@ -473,7 +473,7 @@ const Profile = () => {
               </TabsTrigger>
               <TabsTrigger value="messages" className="gap-2">
                 <MessageCircle className="w-4 h-4" />
-                Messages
+                Messages ({conversations.length})
               </TabsTrigger>
             </TabsList>
             
