@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Navbar } from "@/components/Navbar";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -196,72 +197,85 @@ const Conversations = () => {
       <Navbar />
       
       <main className="pt-24 pb-16 px-4">
-        <div className="container max-w-4xl mx-auto">
-          <div className="flex items-center gap-4 mb-8">
-            <Button 
-              variant="ghost" 
-              size="icon"
-              onClick={() => navigate('/profile')}
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-            <div>
-              <h1 className="text-4xl font-bold">Conversations</h1>
-              <p className="text-muted-foreground">
-                {conversations.length} conversation{conversations.length !== 1 ? 's' : ''}
-              </p>
+        <div className="container max-w-7xl mx-auto space-y-8">
+          <div className="space-y-2">
+            <div className="flex items-center gap-4">
+              <Button 
+                variant="ghost" 
+                size="icon"
+                onClick={() => navigate('/profile')}
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </Button>
+              <div>
+                <h1 className="text-4xl md:text-5xl font-bold">
+                  My <span className="gradient-hero-text">Conversations</span>
+                </h1>
+                <p className="text-xl text-muted-foreground">
+                  Chat with your friends
+                </p>
+              </div>
             </div>
           </div>
 
           {conversations.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 gap-4">
-              <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center">
-                <MessageCircle className="w-10 h-10 text-primary" />
-              </div>
-              <div className="text-center">
-                <h3 className="text-xl font-semibold mb-2">No messages yet</h3>
-                <p className="text-muted-foreground">
-                  Start a conversation with your friends from your profile
-                </p>
-              </div>
-              <Button onClick={() => navigate('/profile')}>
-                Go to Profile
-              </Button>
-            </div>
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center py-16 gap-4">
+                <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center">
+                  <MessageCircle className="w-10 h-10 text-primary" />
+                </div>
+                <div className="text-center">
+                  <h3 className="text-xl font-semibold mb-2">No messages yet</h3>
+                  <p className="text-muted-foreground">
+                    Start a conversation with your friends from your profile
+                  </p>
+                </div>
+                <Button onClick={() => navigate('/profile')}>
+                  Go to Profile
+                </Button>
+              </CardContent>
+            </Card>
           ) : (
-            <ScrollArea className="h-[calc(100vh-250px)]">
-              <div className="space-y-2">
-                {conversations.map((conv) => (
-                  <button
-                    key={conv.id}
-                    onClick={() => navigate(`/messages/${conv.id}`)}
-                    className="w-full p-4 rounded-lg hover:bg-muted/50 transition-colors flex items-center gap-4 text-left"
-                  >
-                    <Avatar className="w-12 h-12 shrink-0">
-                      <AvatarFallback className="bg-primary/10 text-primary text-lg">
-                        {conv.participants[0]?.name?.[0] || "?"}
-                      </AvatarFallback>
-                    </Avatar>
-                    
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between gap-2 mb-1">
-                        <p className="font-semibold truncate">
-                          {conv.participants.map((p: any) => p.name).join(", ")}
-                        </p>
-                        {conv.lastMessageTime && (
-                          <span className="text-xs text-muted-foreground shrink-0">
-                            {formatTime(conv.lastMessageTime)}
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-sm text-muted-foreground truncate">
-                        {conv.lastMessage || "Start a conversation"}
-                      </p>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </ScrollArea>
+            <Card>
+              <CardHeader>
+                <CardTitle>All Conversations ({conversations.length})</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ScrollArea className="h-[600px]">
+                  <div className="space-y-2">
+                    {conversations.map((conv) => (
+                      <button
+                        key={conv.id}
+                        onClick={() => navigate(`/messages/${conv.id}`)}
+                        className="w-full p-4 rounded-lg hover:bg-muted/50 transition-all border flex items-center gap-4 text-left animate-fade-in"
+                      >
+                        <Avatar className="w-12 h-12 shrink-0">
+                          <AvatarFallback className="bg-primary/10 text-primary text-lg">
+                            {conv.participants[0]?.name?.[0] || "?"}
+                          </AvatarFallback>
+                        </Avatar>
+                        
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-2 mb-1">
+                            <p className="font-semibold truncate">
+                              {conv.participants.map((p: any) => p.name).join(", ")}
+                            </p>
+                            {conv.lastMessageTime && (
+                              <span className="text-xs text-muted-foreground shrink-0">
+                                {formatTime(conv.lastMessageTime)}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-sm text-muted-foreground truncate">
+                            {conv.lastMessage || "Start a conversation"}
+                          </p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </ScrollArea>
+              </CardContent>
+            </Card>
           )}
         </div>
       </main>
