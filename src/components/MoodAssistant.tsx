@@ -5,14 +5,14 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Sparkles, Heart, Smile, Frown, Zap, Brain, Loader2 } from "lucide-react";
+import { Sparkles, Heart, Smile, Frown, Zap, Brain, Loader2, Meh } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const quickMoods = [
   { label: "Stressed", icon: Brain, color: "bg-orange-500/10 text-orange-500 hover:bg-orange-500/20" },
   { label: "Happy", icon: Smile, color: "bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20" },
   { label: "Sad", icon: Frown, color: "bg-blue-500/10 text-blue-500 hover:bg-blue-500/20" },
-  { label: "Bored", icon: Zap, color: "bg-purple-500/10 text-purple-500 hover:bg-purple-500/20" },
+  { label: "Bored", icon: Meh, color: "bg-purple-500/10 text-purple-500 hover:bg-purple-500/20" },
   { label: "Anxious", icon: Heart, color: "bg-red-500/10 text-red-500 hover:bg-red-500/20" },
 ];
 
