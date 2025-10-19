@@ -151,19 +151,11 @@ const Profile = () => {
     try {
       const { data: participantData, error } = await supabase
         .from('conversation_participants')
-        .select(`
-          conversation_id,
-          conversations:conversation_id(
-            id,
-            created_at,
-            updated_at
-          )
-        `)
+        .select('conversation_id')
         .eq('user_id', userId);
       
       if (error) throw error;
       
-      // Get all conversations with their participants
       const conversationIds = participantData?.map(p => p.conversation_id) || [];
       
       if (conversationIds.length > 0) {
@@ -178,18 +170,22 @@ const Profile = () => {
         
         if (convError) throw convError;
         
-        const conversationsMap = new Map();
+        // Group by user (not by conversation) - same logic as Conversations page
+        const usersMap = new Map();
+        
         convData?.forEach((cp: any) => {
-          if (!conversationsMap.has(cp.conversation_id)) {
-            conversationsMap.set(cp.conversation_id, {
+          const userIdKey = cp.user.id;
+          if (!usersMap.has(userIdKey)) {
+            usersMap.set(userIdKey, {
               id: cp.conversation_id,
-              participants: []
+              participants: [cp.user]
             });
           }
-          conversationsMap.get(cp.conversation_id).participants.push(cp.user);
         });
         
-        setConversations(Array.from(conversationsMap.values()));
+        setConversations(Array.from(usersMap.values()));
+      } else {
+        setConversations([]);
       }
     } catch (error) {
       console.error('Error fetching conversations:', error);
@@ -474,7 +470,7 @@ const Profile = () => {
               <TabsTrigger value="messages" className="gap-2" asChild>
                 <button onClick={() => navigate('/conversations')}>
                   <MessageCircle className="w-4 h-4" />
-                  Messages ({conversations.length})
+                  Conversations ({conversations.length})
                 </button>
               </TabsTrigger>
             </TabsList>

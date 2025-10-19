@@ -43,9 +43,24 @@ const Messages = () => {
             table: 'messages',
             filter: `conversation_id=eq.${conversationId}`
           },
-          (payload) => {
+          async (payload) => {
             console.log('✅ Real-time message received:', payload);
-            fetchMessages();
+            const newMessage = payload.new as any;
+            
+            // Fetch the complete message with sender info
+            const { data } = await supabase
+              .from('messages')
+              .select('*, sender:sender_id(id, name, email)')
+              .eq('id', newMessage.id)
+              .single();
+            
+            if (data) {
+              setMessages(prev => {
+                // Avoid duplicates
+                if (prev.some(m => m.id === data.id)) return prev;
+                return [...prev, data];
+              });
+            }
           }
         )
         .subscribe((status, err) => {
