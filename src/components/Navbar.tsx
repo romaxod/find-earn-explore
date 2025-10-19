@@ -20,16 +20,16 @@ export const Navbar = () => {
     let notificationChannel: any;
     let clearingConversations = false;
 
-    // Listen for custom event when user clicks conversations button - clear immediately
+    // Listen for custom event when user clicks conversations button - clear immediately and permanently
     const handleConversationsClicked = () => {
-      console.log('🔔 Conversations clicked - clearing notification badge');
+      console.log('🔔 Conversations clicked - clearing notification badge permanently');
       setHasNotifications(false);
       clearingConversations = true;
-      // Increase timeout to 5 seconds to ensure database updates complete
+      // Keep flag set for 10 seconds to ensure database updates complete and propagate
       setTimeout(() => {
         clearingConversations = false;
-        console.log('✅ Ready to check notifications again');
-      }, 5000);
+        console.log('✅ Ready to check for NEW messages only');
+      }, 10000);
     };
 
     window.addEventListener('conversationsClicked', handleConversationsClicked);
@@ -41,21 +41,9 @@ export const Navbar = () => {
         fetchCredits(session.user.id);
         checkNotifications(session.user.id);
 
-        // Set up realtime subscription for invitation changes
+        // Set up realtime subscription for new messages only
         notificationChannel = supabase
           .channel('notification-changes')
-          .on(
-            'postgres_changes',
-            {
-              event: '*',
-              schema: 'public',
-              table: 'event_invitations',
-              filter: `receiver_id=eq.${session.user.id}`
-            },
-            () => {
-              checkNotifications(session.user.id);
-            }
-          )
           .on(
             'postgres_changes',
             {
@@ -120,17 +108,8 @@ export const Navbar = () => {
 
   const checkNotifications = async (userId: string) => {
     console.log('🔍 Checking notifications for user:', userId);
-    
-    // Check for pending event invitations
-    const { data: invitations } = await supabase
-      .from('event_invitations')
-      .select('id')
-      .eq('receiver_id', userId)
-      .eq('status', 'pending');
 
-    console.log('📧 Pending invitations:', invitations?.length || 0);
-
-    // Check for unread messages in user's conversations
+    // ONLY check for unread messages - ignore event invitations
     const { data: userConversations } = await supabase
       .from('conversation_participants')
       .select('conversation_id, last_read_at')
@@ -156,7 +135,7 @@ export const Navbar = () => {
     }
 
     console.log('📊 Has unread messages:', hasUnreadMessages);
-    setHasNotifications((invitations && invitations.length > 0) || hasUnreadMessages);
+    setHasNotifications(hasUnreadMessages);
   };
 
   const handleSignOut = async () => {
