@@ -15,23 +15,19 @@ export const Navbar = () => {
 
   useEffect(() => {
     let notificationChannel: any;
+    let clearingConversations = false;
 
     // Listen for custom event when user clicks conversations button - clear immediately
     const handleConversationsClicked = () => {
       setHasNotifications(false);
-    };
-
-    // Listen for custom event when conversations data is updated
-    const handleConversationsViewed = () => {
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        if (session?.user) {
-          checkNotifications(session.user.id);
-        }
-      });
+      clearingConversations = true;
+      // Reset flag after a delay to allow database updates to propagate
+      setTimeout(() => {
+        clearingConversations = false;
+      }, 2000);
     };
 
     window.addEventListener('conversationsClicked', handleConversationsClicked);
-    window.addEventListener('conversationsViewed', handleConversationsViewed);
 
     // Check initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -74,8 +70,10 @@ export const Navbar = () => {
               table: 'conversation_participants'
             },
             () => {
-              // Re-check when last_read_at is updated
-              checkNotifications(session.user.id);
+              // Only re-check if not currently clearing conversations
+              if (!clearingConversations) {
+                checkNotifications(session.user.id);
+              }
             }
           )
           .subscribe();
@@ -100,7 +98,6 @@ export const Navbar = () => {
         supabase.removeChannel(notificationChannel);
       }
       window.removeEventListener('conversationsClicked', handleConversationsClicked);
-      window.removeEventListener('conversationsViewed', handleConversationsViewed);
     };
   }, []);
 

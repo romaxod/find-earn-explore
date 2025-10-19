@@ -435,7 +435,7 @@ const Profile = () => {
     // Immediately clear the notification badge
     window.dispatchEvent(new CustomEvent('conversationsClicked'));
     
-    // Mark all conversations as read
+    // Mark all conversations as read in batch
     try {
       const { data: userConvData } = await supabase
         .from('conversation_participants')
@@ -443,15 +443,15 @@ const Profile = () => {
         .eq('user_id', user.id);
       
       if (userConvData && userConvData.length > 0) {
-        for (const conv of userConvData) {
-          await supabase.rpc('update_conversation_read_status', {
-            conv_id: conv.conversation_id,
-            user_id: user.id
-          });
-        }
-        
-        // Notify navbar to refresh after marking as read
-        window.dispatchEvent(new CustomEvent('conversationsViewed'));
+        // Update all conversations at once using Promise.all
+        await Promise.all(
+          userConvData.map(conv =>
+            supabase.rpc('update_conversation_read_status', {
+              conv_id: conv.conversation_id,
+              user_id: user.id
+            })
+          )
+        );
       }
     } catch (error) {
       console.error('Error marking conversations as read:', error);
