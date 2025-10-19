@@ -3,12 +3,13 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Clock, Star, ArrowLeft, Navigation, Users, Check, UserPlus } from "lucide-react";
+import { MapPin, Clock, Star, ArrowLeft, Navigation, Users, Check, UserPlus, MapPinCheck, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import TbilisiMap from "@/components/TbilisiMap";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { InviteFriendsDialog } from "@/components/InviteFriendsDialog";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const EventDetail = () => {
   const { id } = useParams();
@@ -21,6 +22,26 @@ const EventDetail = () => {
   const [rsvps, setRsvps] = useState<any[]>([]);
   const [isGoing, setIsGoing] = useState(false);
   const [showDirections, setShowDirections] = useState(false);
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [locationError, setLocationError] = useState<string>("");
+  const [checkingLocation, setCheckingLocation] = useState(false);
+  const [isNearEvent, setIsNearEvent] = useState(false);
+
+  // Calculate distance between two coordinates in meters using Haversine formula
+  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+    const R = 6371e3; // Earth's radius in meters
+    const φ1 = lat1 * Math.PI / 180;
+    const φ2 = lat2 * Math.PI / 180;
+    const Δφ = (lat2 - lat1) * Math.PI / 180;
+    const Δλ = (lon2 - lon1) * Math.PI / 180;
+
+    const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+              Math.cos(φ1) * Math.cos(φ2) *
+              Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+    return R * c; // Distance in meters
+  };
 
   useEffect(() => {
     checkAuth();
@@ -149,10 +170,23 @@ const EventDetail = () => {
       return;
     }
 
+    if (!isNearEvent) {
+      toast({
+        title: "Location verification required",
+        description: "You must be at the event location to check in",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setAttending(true);
     try {
       const { data, error } = await supabase.functions.invoke('attend-event', {
-        body: { eventId: id }
+        body: { 
+          eventId: id,
+          userLat: userLocation?.lat,
+          userLng: userLocation?.lng
+        }
       });
       
       if (error) throw error;
@@ -183,6 +217,77 @@ const EventDetail = () => {
     } finally {
       setAttending(false);
     }
+  };
+
+  const verifyLocation = () => {
+    if (!navigator.geolocation) {
+      setLocationError("Geolocation is not supported by your browser");
+      return;
+    }
+
+    setCheckingLocation(true);
+    setLocationError("");
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const userLat = position.coords.latitude;
+        const userLng = position.coords.longitude;
+        setUserLocation({ lat: userLat, lng: userLng });
+
+        if (event) {
+          const distance = calculateDistance(
+            userLat,
+            userLng,
+            event.location_lat,
+            event.location_lng
+          );
+
+          console.log(`Distance to event: ${Math.round(distance)} meters`);
+
+          // Allow check-in if within 100 meters of event
+          const maxDistance = 100;
+          setIsNearEvent(distance <= maxDistance);
+
+          if (distance <= maxDistance) {
+            toast({
+              title: "Location verified! ✅",
+              description: `You're ${Math.round(distance)}m from the event. You can now check in!`,
+            });
+          } else {
+            toast({
+              title: "Too far from event",
+              description: `You're ${Math.round(distance)}m away. Get within 100m to check in.`,
+              variant: "destructive",
+            });
+          }
+        }
+        setCheckingLocation(false);
+      },
+      (error) => {
+        console.error('Geolocation error:', error);
+        let errorMessage = "Unable to get your location";
+        
+        switch(error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage = "Location permission denied. Please enable location access in your browser.";
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errorMessage = "Location information unavailable";
+            break;
+          case error.TIMEOUT:
+            errorMessage = "Location request timed out";
+            break;
+        }
+        
+        setLocationError(errorMessage);
+        setCheckingLocation(false);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+      }
+    );
   };
 
   if (loading) {
@@ -379,15 +484,59 @@ const EventDetail = () => {
                 </Button>
                 <InviteFriendsDialog eventId={event.id} eventTitle={event.title} />
                 <Button 
-                  variant="hero" 
+                  variant={isNearEvent ? "hero" : "outline"}
                   className="gap-2" 
                   size="lg"
-                  onClick={handleAttendEvent}
-                  disabled={attending}
+                  onClick={isNearEvent ? handleAttendEvent : verifyLocation}
+                  disabled={attending || checkingLocation}
                 >
-                  {attending ? "Checking in..." : "Check In & Earn"}
+                  {checkingLocation ? (
+                    "Verifying location..."
+                  ) : isNearEvent ? (
+                    <>
+                      <MapPinCheck className="w-4 h-4" />
+                      Check In & Earn
+                    </>
+                  ) : attending ? (
+                    "Checking in..."
+                  ) : (
+                    <>
+                      <MapPin className="w-4 h-4" />
+                      Verify Location
+                    </>
+                  )}
                 </Button>
               </div>
+
+              {locationError && (
+                <Alert variant="destructive" className="animate-fade-in">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>{locationError}</AlertDescription>
+                </Alert>
+              )}
+
+              {userLocation && !isNearEvent && (
+                <Alert className="animate-fade-in">
+                  <MapPin className="h-4 w-4" />
+                  <AlertDescription>
+                    You're currently {event && Math.round(calculateDistance(
+                      userLocation.lat,
+                      userLocation.lng,
+                      event.location_lat,
+                      event.location_lng
+                    ))}m from the event. Get within 100m to check in.
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {isNearEvent && (
+                <Alert className="bg-primary/10 border-primary animate-fade-in">
+                  <MapPinCheck className="h-4 w-4 text-primary" />
+                  <AlertDescription className="text-primary">
+                    Location verified! You can now check in and earn credits.
+                  </AlertDescription>
+                </Alert>
+              )}
             </div>
           </div>
         </div>
