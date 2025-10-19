@@ -5,3 +5,6 @@ verify_jwt = true
 
 [functions.attend-event]
 verify_jwt = true
+
+[functions.mood-event-suggestions]
+verify_jwt = true

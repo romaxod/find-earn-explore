@@ -12,6 +12,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format, startOfDay, endOfDay, addDays, startOfWeek, endOfWeek } from "date-fns";
 import { cn } from "@/lib/utils";
+import { MoodAssistant } from "@/components/MoodAssistant";
 
 const Explore = () => {
   const { toast } = useToast();
@@ -157,6 +158,8 @@ const Explore = () => {
               </Button>
             )}
           </div>
+
+          {user && <MoodAssistant />}
           
           <div className="flex flex-col md:flex-row gap-4">
             <div className="relative flex-1">
