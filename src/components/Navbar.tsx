@@ -11,53 +11,13 @@ export const Navbar = () => {
   const { toast } = useToast();
   const [user, setUser] = useState<any>(null);
   const [credits, setCredits] = useState(0);
-  const [showNotificationDot, setShowNotificationDot] = useState(false);
 
   useEffect(() => {
-    let messageChannel: any;
-
     // Check initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       if (session?.user) {
         fetchCredits(session.user.id);
-
-        console.log('🔔 Setting up message notification listener for user:', session.user.id);
-
-        // Set up realtime subscription for incoming messages
-        messageChannel = supabase
-          .channel('incoming-messages')
-          .on(
-            'postgres_changes',
-            {
-              event: 'INSERT',
-              schema: 'public',
-              table: 'messages'
-            },
-            async (payload) => {
-              const newMessage = payload.new as any;
-              console.log('📨 New message received:', newMessage);
-              console.log('👤 Current user ID:', session.user.id);
-              console.log('📤 Message sender ID:', newMessage.sender_id);
-              
-              // Only show red dot if message is NOT from current user
-              if (newMessage.sender_id !== session.user.id) {
-                console.log('✅ Showing red dot - message from someone else');
-                setShowNotificationDot(true);
-                
-                // Hide the dot after 4 seconds
-                setTimeout(() => {
-                  console.log('⏰ Hiding red dot after 4 seconds');
-                  setShowNotificationDot(false);
-                }, 4000);
-              } else {
-                console.log('❌ Not showing dot - message is from current user');
-              }
-            }
-          )
-          .subscribe((status) => {
-            console.log('📡 Message channel subscription status:', status);
-          });
       }
     });
 
@@ -68,16 +28,11 @@ export const Navbar = () => {
         fetchCredits(session.user.id);
       } else {
         setCredits(0);
-        setShowNotificationDot(false);
       }
     });
 
     return () => {
       subscription.unsubscribe();
-      if (messageChannel) {
-        console.log('🔌 Unsubscribing from message channel');
-        supabase.removeChannel(messageChannel);
-      }
     };
   }, []);
 
@@ -148,13 +103,10 @@ export const Navbar = () => {
                 <Link to="/profile">
                   <Button 
                     variant={location.pathname === "/profile" ? "default" : "ghost"} 
-                    className="gap-2 relative"
+                    className="gap-2"
                   >
                     <UserCircle className="w-4 h-4" />
                     Profile
-                    {showNotificationDot && (
-                      <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-background animate-pulse" />
-                    )}
                   </Button>
                 </Link>
                 <Button variant="ghost" className="gap-2" onClick={handleSignOut}>
