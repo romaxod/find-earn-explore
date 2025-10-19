@@ -432,10 +432,13 @@ const Profile = () => {
   const handleConversationsTabClick = async () => {
     if (!user) return;
     
-    // Immediately clear the notification badge
+    // Immediately clear the notification badge via window function
+    if ((window as any).clearNotificationBadge) {
+      (window as any).clearNotificationBadge();
+    }
     window.dispatchEvent(new CustomEvent('conversationsClicked'));
     
-    // Mark all conversations as read in batch
+    // Mark all conversations as read with current timestamp
     try {
       const { data: userConvData } = await supabase
         .from('conversation_participants')
@@ -443,7 +446,7 @@ const Profile = () => {
         .eq('user_id', user.id);
       
       if (userConvData && userConvData.length > 0) {
-        // Update all conversations at once using Promise.all
+        // Update all conversations with current timestamp
         await Promise.all(
           userConvData.map(conv =>
             supabase.rpc('update_conversation_read_status', {

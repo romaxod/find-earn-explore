@@ -13,18 +13,23 @@ export const Navbar = () => {
   const [credits, setCredits] = useState(0);
   const [hasNotifications, setHasNotifications] = useState(false);
 
+  // Add local state setter for Profile page to use
+  (window as any).clearNotificationBadge = () => setHasNotifications(false);
+
   useEffect(() => {
     let notificationChannel: any;
     let clearingConversations = false;
 
     // Listen for custom event when user clicks conversations button - clear immediately
     const handleConversationsClicked = () => {
+      console.log('🔔 Conversations clicked - clearing notification badge');
       setHasNotifications(false);
       clearingConversations = true;
-      // Reset flag after a delay to allow database updates to propagate
+      // Increase timeout to 5 seconds to ensure database updates complete
       setTimeout(() => {
         clearingConversations = false;
-      }, 2000);
+        console.log('✅ Ready to check notifications again');
+      }, 5000);
     };
 
     window.addEventListener('conversationsClicked', handleConversationsClicked);
@@ -114,12 +119,16 @@ export const Navbar = () => {
   };
 
   const checkNotifications = async (userId: string) => {
+    console.log('🔍 Checking notifications for user:', userId);
+    
     // Check for pending event invitations
     const { data: invitations } = await supabase
       .from('event_invitations')
       .select('id')
       .eq('receiver_id', userId)
       .eq('status', 'pending');
+
+    console.log('📧 Pending invitations:', invitations?.length || 0);
 
     // Check for unread messages in user's conversations
     const { data: userConversations } = await supabase
@@ -132,19 +141,21 @@ export const Navbar = () => {
       for (const conv of userConversations) {
         const { data: unreadMessages } = await supabase
           .from('messages')
-          .select('id')
+          .select('id, created_at')
           .eq('conversation_id', conv.conversation_id)
           .neq('sender_id', userId)
           .gt('created_at', conv.last_read_at || new Date(0).toISOString())
           .limit(1);
         
         if (unreadMessages && unreadMessages.length > 0) {
+          console.log('💬 Unread messages in conversation:', conv.conversation_id, 'last_read_at:', conv.last_read_at);
           hasUnreadMessages = true;
           break;
         }
       }
     }
 
+    console.log('📊 Has unread messages:', hasUnreadMessages);
     setHasNotifications((invitations && invitations.length > 0) || hasUnreadMessages);
   };
 
