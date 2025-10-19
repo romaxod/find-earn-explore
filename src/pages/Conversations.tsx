@@ -4,10 +4,9 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
-import { MessageCircle, Plus, ArrowLeft } from "lucide-react";
+import { MessageCircle, ArrowLeft } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Card } from "@/components/ui/card";
 
 const Conversations = () => {
   const { toast } = useToast();
@@ -21,26 +20,38 @@ const Conversations = () => {
   }, []);
 
   useEffect(() => {
-    if (user) {
-      const channel = supabase
-        .channel('conversations-updates')
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'messages'
-          },
-          () => {
-            fetchConversations();
-          }
-        )
-        .subscribe();
+    if (!user) return;
 
-      return () => {
-        supabase.removeChannel(channel);
-      };
-    }
+    // Subscribe to conversation changes
+    const channel = supabase
+      .channel('conversations-list')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'conversation_participants',
+        },
+        () => {
+          fetchConversations(user.id);
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'messages',
+        },
+        () => {
+          fetchConversations(user.id);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user]);
 
   const checkAuth = async () => {
@@ -51,19 +62,18 @@ const Conversations = () => {
     }
     
     setUser(session.user);
-    await fetchConversations();
+    await fetchConversations(session.user.id);
   };
 
-  const fetchConversations = async () => {
+  const fetchConversations = async (userId: string) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      // Get user's conversations
+      setLoading(true);
+      
+      // Get all conversations where user is a participant
       const { data: participantData, error: partError } = await supabase
         .from('conversation_participants')
         .select('conversation_id')
-        .eq('user_id', user.id);
+        .eq('user_id', userId);
       
       if (partError) throw partError;
       
@@ -80,43 +90,51 @@ const Conversations = () => {
         .from('conversation_participants')
         .select(`
           conversation_id,
-          user:user_id(id, name, email),
-          conversations:conversation_id(updated_at)
+          user:user_id(id, name, email)
         `)
         .in('conversation_id', conversationIds)
-        .neq('user_id', user.id);
+        .neq('user_id', userId);
       
       if (convError) throw convError;
 
       // Get last message for each conversation
+      const { data: messagesData, error: msgError } = await supabase
+        .from('messages')
+        .select('conversation_id, content, created_at')
+        .in('conversation_id', conversationIds)
+        .order('created_at', { ascending: false });
+      
+      if (msgError) throw msgError;
+
+      // Group by conversation
       const conversationsMap = new Map();
       
-      for (const cp of (convData || [])) {
+      convData?.forEach((cp: any) => {
         if (!conversationsMap.has(cp.conversation_id)) {
-          const { data: lastMsg } = await supabase
-            .from('messages')
-            .select('content, created_at')
-            .eq('conversation_id', cp.conversation_id)
-            .order('created_at', { ascending: false })
-            .limit(1)
-            .single();
-
           conversationsMap.set(cp.conversation_id, {
             id: cp.conversation_id,
-            participants: [cp.user],
-            lastMessage: lastMsg,
-            updated_at: cp.conversations?.updated_at
+            participants: [],
+            lastMessage: null,
+            lastMessageTime: null
           });
-        } else {
-          conversationsMap.get(cp.conversation_id).participants.push(cp.user);
         }
-      }
-      
+        conversationsMap.get(cp.conversation_id).participants.push(cp.user);
+      });
+
+      // Add last messages
+      messagesData?.forEach((msg: any) => {
+        const conv = conversationsMap.get(msg.conversation_id);
+        if (conv && !conv.lastMessage) {
+          conv.lastMessage = msg.content;
+          conv.lastMessageTime = msg.created_at;
+        }
+      });
+
       const conversationsList = Array.from(conversationsMap.values())
         .sort((a, b) => {
-          const timeA = a.lastMessage?.created_at || a.updated_at;
-          const timeB = b.lastMessage?.created_at || b.updated_at;
-          return new Date(timeB).getTime() - new Date(timeA).getTime();
+          if (!a.lastMessageTime) return 1;
+          if (!b.lastMessageTime) return -1;
+          return new Date(b.lastMessageTime).getTime() - new Date(a.lastMessageTime).getTime();
         });
       
       setConversations(conversationsList);
@@ -164,73 +182,74 @@ const Conversations = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
       
-      <main className="pt-20 pb-16">
-        <div className="container max-w-4xl mx-auto px-4">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <Button 
-                variant="ghost" 
-                size="icon"
-                onClick={() => navigate('/profile')}
-              >
-                <ArrowLeft className="w-5 h-5" />
-              </Button>
-              <h1 className="text-3xl font-bold">Messages</h1>
-            </div>
-            <Button onClick={() => navigate('/profile')}>
-              <Plus className="w-4 h-4 mr-2" />
-              New Chat
+      <main className="pt-24 pb-16 px-4">
+        <div className="container max-w-4xl mx-auto">
+          <div className="flex items-center gap-4 mb-8">
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={() => navigate('/profile')}
+            >
+              <ArrowLeft className="w-5 h-5" />
             </Button>
+            <div>
+              <h1 className="text-4xl font-bold">Messages</h1>
+              <p className="text-muted-foreground">
+                {conversations.length} conversation{conversations.length !== 1 ? 's' : ''}
+              </p>
+            </div>
           </div>
 
-          <ScrollArea className="h-[calc(100vh-180px)]">
-            {conversations.length === 0 ? (
-              <Card className="p-12 text-center">
-                <MessageCircle className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-xl font-semibold mb-2">No conversations yet</h3>
-                <p className="text-muted-foreground mb-4">
-                  Start chatting with your friends from your profile
+          {conversations.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 gap-4">
+              <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center">
+                <MessageCircle className="w-10 h-10 text-primary" />
+              </div>
+              <div className="text-center">
+                <h3 className="text-xl font-semibold mb-2">No messages yet</h3>
+                <p className="text-muted-foreground">
+                  Start a conversation with your friends from your profile
                 </p>
-                <Button onClick={() => navigate('/profile')}>
-                  Go to Profile
-                </Button>
-              </Card>
-            ) : (
+              </div>
+              <Button onClick={() => navigate('/profile')}>
+                Go to Profile
+              </Button>
+            </div>
+          ) : (
+            <ScrollArea className="h-[calc(100vh-250px)]">
               <div className="space-y-2">
                 {conversations.map((conv) => (
-                  <Card
+                  <button
                     key={conv.id}
-                    className="p-4 hover:bg-accent cursor-pointer transition-colors"
                     onClick={() => navigate(`/messages/${conv.id}`)}
+                    className="w-full p-4 rounded-lg hover:bg-muted/50 transition-colors flex items-center gap-4 text-left"
                   >
-                    <div className="flex items-center gap-3">
-                      <Avatar className="w-12 h-12 shrink-0">
-                        <AvatarFallback className="bg-primary/10 text-primary text-lg">
-                          {conv.participants[0]?.name?.[0] || "?"}
-                        </AvatarFallback>
-                      </Avatar>
-                      
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-baseline justify-between mb-1">
-                          <p className="font-semibold truncate">
-                            {conv.participants.map((p: any) => p.name).join(", ")}
-                          </p>
-                          {conv.lastMessage && (
-                            <span className="text-xs text-muted-foreground ml-2 shrink-0">
-                              {formatTime(conv.lastMessage.created_at)}
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-sm text-muted-foreground truncate">
-                          {conv.lastMessage?.content || "Start the conversation"}
+                    <Avatar className="w-12 h-12 shrink-0">
+                      <AvatarFallback className="bg-primary/10 text-primary text-lg">
+                        {conv.participants[0]?.name?.[0] || "?"}
+                      </AvatarFallback>
+                    </Avatar>
+                    
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2 mb-1">
+                        <p className="font-semibold truncate">
+                          {conv.participants.map((p: any) => p.name).join(", ")}
                         </p>
+                        {conv.lastMessageTime && (
+                          <span className="text-xs text-muted-foreground shrink-0">
+                            {formatTime(conv.lastMessageTime)}
+                          </span>
+                        )}
                       </div>
+                      <p className="text-sm text-muted-foreground truncate">
+                        {conv.lastMessage || "Start a conversation"}
+                      </p>
                     </div>
-                  </Card>
+                  </button>
                 ))}
               </div>
-            )}
-          </ScrollArea>
+            </ScrollArea>
+          )}
         </div>
       </main>
     </div>

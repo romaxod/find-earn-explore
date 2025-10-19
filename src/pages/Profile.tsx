@@ -471,9 +471,11 @@ const Profile = () => {
                 <Users className="w-4 h-4" />
                 Friends ({friends.length})
               </TabsTrigger>
-              <TabsTrigger value="messages" className="gap-2">
-                <MessageCircle className="w-4 h-4" />
-                Messages ({conversations.length})
+              <TabsTrigger value="messages" className="gap-2" asChild>
+                <button onClick={() => navigate('/conversations')}>
+                  <MessageCircle className="w-4 h-4" />
+                  Messages ({conversations.length})
+                </button>
               </TabsTrigger>
             </TabsList>
             
