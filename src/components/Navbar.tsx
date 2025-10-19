@@ -11,6 +11,7 @@ export const Navbar = () => {
   const { toast } = useToast();
   const [user, setUser] = useState<any>(null);
   const [credits, setCredits] = useState(0);
+  const [hasNotifications, setHasNotifications] = useState(false);
 
   useEffect(() => {
     // Check initial session
@@ -18,6 +19,7 @@ export const Navbar = () => {
       setUser(session?.user ?? null);
       if (session?.user) {
         fetchCredits(session.user.id);
+        checkNotifications(session.user.id);
       }
     });
 
@@ -26,8 +28,10 @@ export const Navbar = () => {
       setUser(session?.user ?? null);
       if (session?.user) {
         fetchCredits(session.user.id);
+        checkNotifications(session.user.id);
       } else {
         setCredits(0);
+        setHasNotifications(false);
       }
     });
 
@@ -44,6 +48,39 @@ export const Navbar = () => {
     if (data) {
       setCredits(data.credits || 0);
     }
+  };
+
+  const checkNotifications = async (userId: string) => {
+    // Check for pending event invitations
+    const { data: invitations } = await supabase
+      .from('event_invitations')
+      .select('id')
+      .eq('receiver_id', userId)
+      .eq('status', 'pending');
+
+    // Check for recent messages in user's conversations (last 24 hours)
+    const { data: userConversations } = await supabase
+      .from('conversation_participants')
+      .select('conversation_id')
+      .eq('user_id', userId);
+
+    let hasRecentMessages = false;
+    if (userConversations && userConversations.length > 0) {
+      const conversationIds = userConversations.map(c => c.conversation_id);
+      const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      
+      const { data: recentMessages } = await supabase
+        .from('messages')
+        .select('id')
+        .in('conversation_id', conversationIds)
+        .neq('sender_id', userId)
+        .gte('created_at', oneDayAgo)
+        .limit(1);
+      
+      hasRecentMessages = recentMessages && recentMessages.length > 0;
+    }
+
+    setHasNotifications((invitations && invitations.length > 0) || hasRecentMessages);
   };
 
   const handleSignOut = async () => {
@@ -101,10 +138,13 @@ export const Navbar = () => {
                 <Link to="/profile">
                   <Button 
                     variant={location.pathname === "/profile" ? "default" : "ghost"} 
-                    className="gap-2"
+                    className="gap-2 relative"
                   >
                     <UserCircle className="w-4 h-4" />
                     Profile
+                    {hasNotifications && (
+                      <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-background" />
+                    )}
                   </Button>
                 </Link>
                 <Button variant="ghost" className="gap-2" onClick={handleSignOut}>
