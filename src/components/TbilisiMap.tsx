@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import mapboxgl from 'mapbox-gl';
-import 'mapbox-gl/dist/mapbox-gl.css';
+import mapboxgl from "mapbox-gl";
+import "mapbox-gl/dist/mapbox-gl.css";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
@@ -21,47 +21,45 @@ const TbilisiMap = ({ highlightEvent, showDirections = true }: TbilisiMapProps =
   const [events, setEvents] = useState<any[]>([]);
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
   const markers = useRef<mapboxgl.Marker[]>([]);
-  const mapboxToken = 'pk.eyJ1IjoiY2N0c2ciLCJhIjoiY21nd294ZmRtMTNjOTJrczJwNzFrZGF1MCJ9.waMaQH12VZD8plcIcYe9AA';
+  const mapboxToken = "pk.eyJ1IjoiY2N0c2ciLCJhIjoiY21oMGt0dXM5MDE2bDJpcXRzYzltZHJ5ZSJ9.W7t4vJmOmCBUfHN5DPXwkw";
 
   useEffect(() => {
     if (!mapContainer.current || map.current) return;
 
     mapboxgl.accessToken = mapboxToken;
-    
+
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/dark-v11',
+      style: "mapbox://styles/mapbox/dark-v11",
       center: [44.8271, 41.7151],
       zoom: 12,
     });
 
-    map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
-    
+    map.current.addControl(new mapboxgl.NavigationControl(), "top-right");
+
     getUserLocation();
     fetchEvents();
 
     return () => {
-      markers.current.forEach(marker => marker.remove());
+      markers.current.forEach((marker) => marker.remove());
       map.current?.remove();
     };
   }, []);
 
   useEffect(() => {
     if (!map.current || !events.length) return;
-    
+
     // Clear existing markers
-    markers.current.forEach(marker => marker.remove());
+    markers.current.forEach((marker) => marker.remove());
     markers.current = [];
 
     // Filter events based on highlightEvent - only show specific event if provided
-    const eventsToShow = highlightEvent?.id 
-      ? events.filter(e => e.id === highlightEvent.id)
-      : events;
+    const eventsToShow = highlightEvent?.id ? events.filter((e) => e.id === highlightEvent.id) : events;
 
     // Add event markers
     eventsToShow.forEach((event) => {
-      const el = document.createElement('div');
-      el.className = 'custom-marker';
+      const el = document.createElement("div");
+      el.className = "custom-marker";
       el.innerHTML = `
         <div class="marker-pin">
           <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -70,14 +68,15 @@ const TbilisiMap = ({ highlightEvent, showDirections = true }: TbilisiMapProps =
           </svg>
         </div>
       `;
-      
-      el.style.cursor = 'pointer';
-      
+
+      el.style.cursor = "pointer";
+
       const marker = new mapboxgl.Marker(el)
         .setLngLat([event.location_lng, event.location_lat])
         .setPopup(
-          new mapboxgl.Popup({ offset: 25, className: 'event-popup', maxWidth: '320px' })
-            .setHTML(`
+          new mapboxgl.Popup({ offset: 25, className: "event-popup", maxWidth: "320px" })
+            .setHTML(
+              `
               <div class="overflow-hidden">
                 <div class="relative h-32 mb-3">
                   <img 
@@ -107,14 +106,14 @@ const TbilisiMap = ({ highlightEvent, showDirections = true }: TbilisiMapProps =
                         <line x1="8" y1="2" x2="8" y2="6"/>
                         <line x1="3" y1="10" x2="21" y2="10"/>
                       </svg>
-                      <span>${new Date(event.time).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                      <span>${new Date(event.time).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
                     </div>
                     <div class="flex items-center gap-1">
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="12" cy="12" r="10"/>
                         <polyline points="12 6 12 12 16 14"/>
                       </svg>
-                      <span>${new Date(event.time).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false })}</span>
+                      <span>${new Date(event.time).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false })}</span>
                     </div>
                     <div class="flex items-center gap-1 font-semibold" style="color: hsl(160 85% 45%);">
                       <span>${event.price} ₾</span>
@@ -131,21 +130,22 @@ const TbilisiMap = ({ highlightEvent, showDirections = true }: TbilisiMapProps =
                   </button>
                 </div>
               </div>
-            `)
-            .on('open', () => {
+            `,
+            )
+            .on("open", () => {
               // Add click listener when popup opens
               const btn = document.querySelector(`[data-event-id="${event.id}"]`);
               if (btn) {
-                btn.addEventListener('click', () => navigate(`/event/${event.id}`));
+                btn.addEventListener("click", () => navigate(`/event/${event.id}`));
               }
-            })
+            }),
         )
         .addTo(map.current);
 
       markers.current.push(marker);
 
       // Add click handler for marker
-      el.addEventListener('click', () => {
+      el.addEventListener("click", () => {
         marker.togglePopup();
       });
     });
@@ -161,9 +161,9 @@ const TbilisiMap = ({ highlightEvent, showDirections = true }: TbilisiMapProps =
       map.current.flyTo({
         center: [highlightEvent.lng, highlightEvent.lat],
         zoom: 15,
-        duration: 2000
+        duration: 2000,
       });
-      
+
       // Redraw routes when highlighting a specific event or showDirections changes
       if (userLocation && events.length > 0) {
         drawRoutesToEvents();
@@ -177,10 +177,10 @@ const TbilisiMap = ({ highlightEvent, showDirections = true }: TbilisiMapProps =
         (position) => {
           const coords: [number, number] = [position.coords.longitude, position.coords.latitude];
           setUserLocation(coords);
-          
+
           if (map.current) {
             // Add user location marker
-            const el = document.createElement('div');
+            const el = document.createElement("div");
             el.innerHTML = `
               <div class="user-marker">
                 <div class="pulse"></div>
@@ -189,7 +189,7 @@ const TbilisiMap = ({ highlightEvent, showDirections = true }: TbilisiMapProps =
                 </svg>
               </div>
             `;
-            
+
             new mapboxgl.Marker(el)
               .setLngLat(coords)
               .setPopup(new mapboxgl.Popup().setHTML('<p class="text-sm font-medium">Your Location</p>'))
@@ -203,7 +203,7 @@ const TbilisiMap = ({ highlightEvent, showDirections = true }: TbilisiMapProps =
             description: "Enable location to see routes to events",
             variant: "destructive",
           });
-        }
+        },
       );
     }
   };
@@ -212,64 +212,62 @@ const TbilisiMap = ({ highlightEvent, showDirections = true }: TbilisiMapProps =
     if (!map.current || !userLocation || !events.length) return;
 
     // Remove existing route layers
-    if (map.current.getLayer('routes')) {
-      map.current.removeLayer('routes');
+    if (map.current.getLayer("routes")) {
+      map.current.removeLayer("routes");
     }
-    if (map.current.getSource('routes')) {
-      map.current.removeSource('routes');
+    if (map.current.getSource("routes")) {
+      map.current.removeSource("routes");
     }
 
     // Only draw routes if showDirections is true
     if (!showDirections) return;
 
     const routes: any[] = [];
-    
+
     // Filter events based on highlightEvent
-    const eventsToRoute = highlightEvent?.id 
-      ? events.filter(e => e.id === highlightEvent.id)
-      : [];  // Only show route when there's a specific highlighted event
+    const eventsToRoute = highlightEvent?.id ? events.filter((e) => e.id === highlightEvent.id) : []; // Only show route when there's a specific highlighted event
 
     for (const event of eventsToRoute) {
       try {
         const response = await fetch(
-          `https://api.mapbox.com/directions/v5/mapbox/walking/${userLocation[0]},${userLocation[1]};${event.location_lng},${event.location_lat}?geometries=geojson&access_token=${mapboxToken}`
+          `https://api.mapbox.com/directions/v5/mapbox/walking/${userLocation[0]},${userLocation[1]};${event.location_lng},${event.location_lat}?geometries=geojson&access_token=${mapboxToken}`,
         );
         const data = await response.json();
-        
+
         if (data.routes && data.routes[0]) {
           routes.push(data.routes[0].geometry);
         }
       } catch (error) {
-        console.error('Error fetching route:', error);
+        console.error("Error fetching route:", error);
       }
     }
 
     if (routes.length > 0 && map.current) {
-      map.current.addSource('routes', {
-        type: 'geojson',
+      map.current.addSource("routes", {
+        type: "geojson",
         data: {
-          type: 'FeatureCollection',
-          features: routes.map(geometry => ({
-            type: 'Feature',
+          type: "FeatureCollection",
+          features: routes.map((geometry) => ({
+            type: "Feature",
             properties: {},
-            geometry
-          }))
-        }
+            geometry,
+          })),
+        },
       });
 
       map.current.addLayer({
-        id: 'routes',
-        type: 'line',
-        source: 'routes',
+        id: "routes",
+        type: "line",
+        source: "routes",
         layout: {
-          'line-join': 'round',
-          'line-cap': 'round'
+          "line-join": "round",
+          "line-cap": "round",
         },
         paint: {
-          'line-color': '#3b82f6',
-          'line-width': 4,
-          'line-opacity': 0.8
-        }
+          "line-color": "#3b82f6",
+          "line-width": 4,
+          "line-opacity": 0.8,
+        },
       });
     }
   };
@@ -277,16 +275,16 @@ const TbilisiMap = ({ highlightEvent, showDirections = true }: TbilisiMapProps =
   const fetchEvents = async () => {
     try {
       const { data, error } = await supabase
-        .from('events')
-        .select('*')
-        .gte('time', new Date().toISOString())
-        .order('time', { ascending: true });
-      
+        .from("events")
+        .select("*")
+        .gte("time", new Date().toISOString())
+        .order("time", { ascending: true });
+
       if (error) throw error;
-      
+
       setEvents(data || []);
     } catch (error) {
-      console.error('Error fetching events:', error);
+      console.error("Error fetching events:", error);
       toast({
         title: "Error",
         description: "Failed to load events on map",
@@ -294,7 +292,6 @@ const TbilisiMap = ({ highlightEvent, showDirections = true }: TbilisiMapProps =
       });
     }
   };
-
 
   return (
     <div className="relative w-full h-full">
