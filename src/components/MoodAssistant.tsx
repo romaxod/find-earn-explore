@@ -105,21 +105,21 @@ export const MoodAssistant = () => {
       }
 
       const suggestions = data.suggestions || [];
+      const message = data.message || '';
+      const type = data.type || 'conversation';
       
       // Create AI response message
-      let responseContent = suggestions.length > 0 
-        ? `Based on your mood "${moodToUse}", I found ${suggestions.length} perfect events for you! These activities are specially selected to help improve your emotional state and overall wellness. Click on any event to learn more.`
-        : `I understand you're feeling ${moodToUse}. Unfortunately, I couldn't find specific events right now, but I'm here to help! Try describing your mood differently or check back later for new events.`;
-
       const assistantMessage: Message = {
         role: 'assistant',
-        content: responseContent,
-        suggestions: suggestions
+        content: message || (suggestions.length > 0 
+          ? `Based on your mood, I found ${suggestions.length} perfect events for you! Click on any event to learn more.`
+          : 'I understand. How else can I help you today?'),
+        suggestions: type === 'events' ? suggestions : undefined
       };
 
       setMessages(prev => [...prev, assistantMessage]);
       
-      if (suggestions.length > 0) {
+      if (type === 'events' && suggestions.length > 0) {
         toast({
           title: "✨ Recommendations Ready!",
           description: `Found ${suggestions.length} events to boost your mood`,

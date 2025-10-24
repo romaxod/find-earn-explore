@@ -66,26 +66,56 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: `You are a wellness and mood improvement advisor. Based on the user's mood, suggest 3-5 events that would best help improve their emotional state and overall wellness. Consider:
-            - If they're stressed: suggest calming activities like yoga, nature walks, or cultural events
-            - If they're sad: suggest uplifting activities like music, comedy, or social events
-            - If they're bored: suggest exciting activities like sports, nightlife, or adventure
-            - If they're anxious: suggest grounding activities like meditation, art, or quiet cultural experiences
-            - If they're lonely: suggest social events where they can meet people
-            
-            For each recommendation, explain WHY this event would help their current mood.
-            Format your response as a JSON array with this structure:
-            [
-              {
-                "title": "event title",
-                "reason": "why this helps their mood",
-                "wellness_benefit": "specific wellness benefit"
-              }
-            ]`
+            content: `You are a friendly and empathetic mood assistant helping people in Tbilisi, Georgia. 
+
+YOUR ROLE:
+- Have natural, human-like conversations
+- Be warm, understanding, and supportive
+- Ask follow-up questions to understand their mood better
+- ONLY suggest events when the user explicitly describes a mood/feeling or asks for recommendations
+
+CONVERSATION GUIDELINES:
+- If they greet you (hi, hello, how are you), respond warmly and ask how they're feeling
+- If they ask general questions, answer naturally without pushing events
+- If they share a mood/feeling, empathize and ask if they'd like event suggestions
+- ONLY provide event recommendations when they actually want them
+
+WHEN TO SUGGEST EVENTS:
+- When they describe how they're feeling (stressed, sad, bored, anxious, happy, etc.)
+- When they explicitly ask for recommendations
+- When they say yes to your offer of suggestions
+
+EVENT RECOMMENDATION RULES (ONLY when appropriate):
+- If stressed: calming activities like yoga, nature walks, cultural events
+- If sad: uplifting activities like music, comedy, social events
+- If bored: exciting activities like sports, nightlife, adventure
+- If anxious: grounding activities like meditation, art, quiet cultural experiences
+- If lonely: social events where they can meet people
+- If happy: energetic activities to maintain the positive mood
+
+RESPONSE FORMAT:
+If suggesting events, respond with JSON:
+{
+  "type": "events",
+  "message": "your conversational message",
+  "suggestions": [
+    {
+      "title": "event title",
+      "reason": "why this helps their mood",
+      "wellness_benefit": "specific wellness benefit"
+    }
+  ]
+}
+
+If just conversing, respond with JSON:
+{
+  "type": "conversation",
+  "message": "your friendly response"
+}`
           },
           {
             role: "user",
-            content: `My current mood: ${mood}\n\nAvailable events:\n${JSON.stringify(eventsList, null, 2)}\n\nPlease suggest events that would help improve my mood and wellness.`
+            content: `User says: "${mood}"\n\nAvailable events (only use if suggesting events):\n${JSON.stringify(eventsList, null, 2)}`
           }
         ],
       }),
@@ -118,46 +148,61 @@ serve(async (req) => {
     console.log('AI Response:', aiResponse);
 
     // Parse the AI response
-    let suggestions;
+    let result;
     try {
-      // Try to extract JSON from the response
-      const jsonMatch = aiResponse.match(/\[[\s\S]*\]/);
+      // Try to extract JSON object from the response
+      const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
-        const aiSuggestions = JSON.parse(jsonMatch[0]);
-        // Match AI suggestions with actual events to get IDs
-        suggestions = aiSuggestions.map((suggestion: any) => {
-          const matchedEvent = events?.find(e => 
-            e.title.toLowerCase() === suggestion.title.toLowerCase()
-          );
-          return {
-            ...suggestion,
-            id: matchedEvent?.id || null
+        const parsedResponse = JSON.parse(jsonMatch[0]);
+        
+        if (parsedResponse.type === 'events' && parsedResponse.suggestions) {
+          // Match AI suggestions with actual events to get IDs
+          const suggestions = parsedResponse.suggestions.map((suggestion: any) => {
+            const matchedEvent = events?.find(e => 
+              e.title.toLowerCase() === suggestion.title.toLowerCase()
+            );
+            return {
+              ...suggestion,
+              id: matchedEvent?.id || null
+            };
+          }).filter((s: any) => s.id !== null); // Only include matched events
+          
+          result = {
+            type: 'events',
+            message: parsedResponse.message,
+            suggestions,
+            mood: mood
           };
-        }).filter((s: any) => s.id !== null); // Only include matched events
+        } else {
+          // Just a conversation, no events
+          result = {
+            type: 'conversation',
+            message: parsedResponse.message || aiResponse,
+            suggestions: [],
+            mood: mood
+          };
+        }
       } else {
-        // If no JSON found, create a structured response from the text
-        suggestions = [{
-          title: "AI Recommendations",
-          reason: aiResponse,
-          wellness_benefit: "Follow AI advice for improved wellness",
-          id: null
-        }];
+        // If no JSON found, treat as conversation
+        result = {
+          type: 'conversation',
+          message: aiResponse,
+          suggestions: [],
+          mood: mood
+        };
       }
     } catch (parseError) {
       console.error('Error parsing AI response:', parseError);
-      suggestions = [{
-        title: "AI Recommendations",
-        reason: aiResponse,
-        wellness_benefit: "Follow AI advice for improved wellness",
-        id: null
-      }];
+      result = {
+        type: 'conversation',
+        message: aiResponse,
+        suggestions: [],
+        mood: mood
+      };
     }
 
     return new Response(
-      JSON.stringify({ 
-        suggestions,
-        mood: mood 
-      }),
+      JSON.stringify(result),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
