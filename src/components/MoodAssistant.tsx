@@ -38,7 +38,7 @@ export const MoodAssistant = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
-      content: "Hi! I'm your AI Mood Assistant. 🌟 Tell me how you're feeling today, and I'll recommend events in Tbilisi that can help improve your mood and wellness."
+      content: "Hi! I'm your AI Mood Assistant. Tell me how you're feeling today, and I'll recommend events in Tbilisi that can help improve your mood and wellness."
     }
   ]);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
