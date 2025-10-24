@@ -163,7 +163,7 @@ export const MoodAssistant = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Conversation History */}
-          <ScrollArea className="h-[400px] pr-4">
+          <ScrollArea className={`pr-4 ${messages.length <= 3 ? 'h-[200px]' : messages.length <= 6 ? 'h-[300px]' : 'h-[450px]'}`}>
             <div className="space-y-4">
               {messages.map((message, index) => (
                 <div key={index} className={`flex gap-3 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
