@@ -1,6 +1,6 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { MapPin, Sparkles, User, Coins, LogOut, Compass, UserCircle } from "lucide-react";
+import { MapPin, Gem, User, Coins, LogOut, Compass, UserCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -62,7 +62,7 @@ export const Navbar = () => {
         <div className="flex items-center justify-between h-16">
           <Link to="/" className="flex items-center gap-2 group">
             <div className="w-10 h-10 rounded-lg gradient-hero flex items-center justify-center shadow-glow">
-              <Sparkles className="w-5 h-5 text-primary-foreground" />
+              <Gem className="w-5 h-5 text-primary-foreground" />
             </div>
             <span className="text-xl font-bold group-hover:text-primary transition-smooth">
               Gulaob.ai
