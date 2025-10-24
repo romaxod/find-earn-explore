@@ -14,7 +14,7 @@ export default {
     },
     extend: {
       fontFamily: {
-        fasad: ['Fasad', 'sans-serif'],
+        kreadon: ['Kreadon', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",
