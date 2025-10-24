@@ -1,21 +1,19 @@
-import discoverIcon from "@/assets/discover-icon.png";
-import creditsIcon from "@/assets/credits-icon.png";
-import aiIcon from "@/assets/ai-icon.png";
+import { Compass, Award, Sparkles } from "lucide-react";
 
 export const Features = () => {
   const features = [
     {
-      icon: discoverIcon,
+      icon: Compass,
       title: "Discover Everything",
       description: "Events, venues, museums, clubs, gyms, parks - every experience in your city with complete details including venue maps, DJ lineups, and precise schedules."
     },
     {
-      icon: creditsIcon,
+      icon: Award,
       title: "Earn While You Explore",
       description: "Your attendance is tracked and converted into credits. Redeem them for discounts at venues or partner businesses. The more you go out, the more you save."
     },
     {
-      icon: aiIcon,
+      icon: Sparkles,
       title: "Smart Recommendations",
       description: "AI learns from your visits and suggests experiences tailored to your taste. Get directions, time estimates, and everything you need to plan your perfect outing."
     }
@@ -41,10 +39,9 @@ export const Features = () => {
             >
               <div className="w-20 h-20 mb-6 rounded-xl bg-gradient-accent p-1">
                 <div className="w-full h-full rounded-lg bg-card flex items-center justify-center">
-                  <img 
-                    src={feature.icon} 
-                    alt={feature.title}
-                    className="w-12 h-12 object-contain"
+                  <feature.icon 
+                    className="w-10 h-10 text-primary"
+                    strokeWidth={1.5}
                   />
                 </div>
               </div>
