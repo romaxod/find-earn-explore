@@ -14,7 +14,7 @@ export default {
     },
     extend: {
       fontFamily: {
-        kreadon: ['Kreadon', 'sans-serif'],
+        kreadon: ['Space Grotesk', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",
