@@ -14,7 +14,7 @@ export default {
     },
     extend: {
       fontFamily: {
-        braviera: ['Braviera', 'sans-serif'],
+        laqatrie: ['La Qatrie', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",

@@ -102,7 +102,7 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground font-braviera;
+    @apply bg-background text-foreground font-laqatrie;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
   
