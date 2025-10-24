@@ -14,7 +14,7 @@ export default {
     },
     extend: {
       fontFamily: {
-        kreadon: ['Kreadon', 'sans-serif'],
+        braviera: ['Braviera', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",
