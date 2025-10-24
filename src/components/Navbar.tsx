@@ -1,10 +1,9 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { MapPin, User, Coins, LogOut, Compass, UserCircle } from "lucide-react";
+import { MapPin, Gem, User, Coins, LogOut, Compass, UserCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import martiniLogo from "@/assets/martini-logo.png";
 
 export const Navbar = () => {
   const navigate = useNavigate();
@@ -62,8 +61,8 @@ export const Navbar = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <Link to="/" className="flex items-center gap-2 group">
-            <div className="w-10 h-10 rounded-lg gradient-hero flex items-center justify-center shadow-glow p-1.5">
-              <img src={martiniLogo} alt="Martini Glass" className="w-full h-full object-contain" />
+            <div className="w-10 h-10 rounded-lg gradient-hero flex items-center justify-center shadow-glow">
+              <Gem className="w-5 h-5 text-primary-foreground" />
             </div>
             <span className="text-xl font-bold group-hover:text-primary transition-smooth">
               Gulaob.ai
