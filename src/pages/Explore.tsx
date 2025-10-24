@@ -47,14 +47,29 @@ const Explore = () => {
   const fetchRecommendations = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('get-recommendations');
+      const { data: { session } } = await supabase.auth.getSession();
       
-      if (error) throw error;
+      if (!session) {
+        console.log('No session found, fetching all events');
+        fetchAllEvents();
+        return;
+      }
+
+      const { data, error } = await supabase.functions.invoke('get-recommendations', {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`
+        }
+      });
+      
+      if (error) {
+        console.error('Function error:', error);
+        throw error;
+      }
       
       if (data?.events) {
         setEvents(data.events);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching recommendations:', error);
       toast({
         title: "Error",
