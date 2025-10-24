@@ -39,7 +39,7 @@ export const Hero = () => {
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
             <Link to="/explore">
-              <Button variant="hero" size="lg" className="text-lg">
+              <Button variant="hero" size="lg" className="text-lg px-10 py-6 h-auto rounded-xl shadow-glow hover:shadow-[0_0_60px_hsl(160_85%_45%/0.5)] transform hover:scale-105 transition-all duration-300">
                 <MapPin className="w-5 h-5" />
                 Start Exploring
               </Button>
@@ -47,7 +47,7 @@ export const Hero = () => {
             <Button 
               variant="outline" 
               size="lg" 
-              className="text-lg border-2"
+              className="text-lg border-2 px-10 py-6 h-auto rounded-xl hover:bg-primary/10"
               onClick={() => {
                 const featuresSection = document.getElementById('features');
                 featuresSection?.scrollIntoView({ behavior: 'smooth' });
